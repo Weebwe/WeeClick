@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "name": "WeeClick",
   "iconUrl": "https://weebwe.com/logo512.png",
-  "url": "https://weeclick-85bd9.web.app",
+  "url": "https://weebwe.github.io/WeeClick/",
   "bridgeUrl": "https://bridge.tonapi.io/bridge",
   "supportedWallets": ["tonkeeper", "tonhub"]
 }
