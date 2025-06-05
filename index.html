@@ -1,20 +1,59 @@
-
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WeeClick</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect.min.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WeeClick - Ігровий автомат з TON</title>
+<link rel="stylesheet" href="style.css" />
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect.min.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>WeeClick</h1>
+<header>
+  <h1>WeeClick</h1>
+  <nav>
+    <button id="btn-play">Грати</button>
+    <button id="btn-tasks">Завдання</button>
+    <button id="btn-leaderboard">Лідерборд</button>
+    <button id="btn-dailybonus">Щоденний бонус</button>
+  </nav>
+  <div id="wallet-info">
     <p id="wallet-status">🔌 Не підключено</p>
     <button id="connect-button">Підключити TON гаманець</button>
     <p id="wallet-address"></p>
   </div>
-  <script src="app.js"></script>
+</header>
+
+<main>
+  <section id="play-section" class="section active">
+    <p>Натискай кнопку, щоб збирати кліки та монети!</p>
+    <button id="click-button">Клік!</button>
+    <p>Кількість кліків: <span id="click-count">0</span></p>
+    <p>Монети: <span id="coins-count">0</span></p>
+  </section>
+
+  <section id="tasks-section" class="section">
+    <h2>Завдання</h2>
+    <ul id="tasks-list">
+      <!-- Завдання завантажуються динамічно -->
+    </ul>
+  </section>
+
+  <section id="leaderboard-section" class="section">
+    <h2>Лідерборд</h2>
+    <ol id="leaderboard-list">
+      <!-- Лідерборд динамічний -->
+    </ol>
+  </section>
+
+  <section id="dailybonus-section" class="section">
+    <h2>Щоденний бонус</h2>
+    <p id="dailybonus-message">Отримайте щоденний бонус монет!</p>
+    <button id="claim-dailybonus">Отримати бонус</button>
+  </section>
+</main>
+
+<script src="app.js"></script>
 </body>
 </html>
