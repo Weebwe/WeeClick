@@ -1,8 +1,9 @@
 {
   "manifest_version": 1,
   "name": "WeeClick",
-  "iconUrl": "https://weebwe.com/logo512.png",
-  "url": "https://weebwe.github.io/WeeClick/",
-  "bridgeUrl": "https://bridge.tonapi.io/bridge",
-  "supportedWallets": ["tonkeeper", "tonhub"]
+  "description": "Telegram WebApp гра від Weebwe з підтримкою TON-гаманця",
+  "url": "https://weebwe.github.io/WeeClick",
+  "iconUrl": "https://weebwe.github.io/WeeClick/icon.png",
+  "termsOfUseUrl": "https://weebwe.github.io/WeeClick/terms.html",
+  "privacyPolicyUrl": "https://weebwe.github.io/WeeClick/privacy.html"
 }
