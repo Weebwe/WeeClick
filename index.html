@@ -1,0 +1,38 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WeeClick</title>
+  <style>
+    body { margin: 0; font-family: Arial; background: #111; color: white; text-align: center; }
+    .progress-bar-container {
+      width: 80%%;
+      height: 30px;
+      background-color: #444;
+      margin: 100px auto;
+      border-radius: 15px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%%;
+      width: 0;
+      background-color: #4caf50;
+      animation: fill 5s forwards;
+    }
+    @keyframes fill {
+      to { width: 100%%; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome to WeeClick</h1>
+  <div class="progress-bar-container">
+    <div class="progress-bar"></div>
+  </div>
+  <script>
+    setTimeout(() => {
+      window.location.href = "auth.html";
+    }, 5000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WeeClick Game</title>
+  <style>
+    body { text-align: center; background: #222; color: #fff; font-family: sans-serif; }
+    #coin-count { font-size: 24px; margin: 20px; }
+    #dog { width: 200px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>WeeClick</h1>
+  <div id="coin-count">Монети: 0</div>
+  <img src="dog.png" id="dog" alt="Dog Clicker">
+  <script>
+    let coins = 0;
+    const counter = document.getElementById("coin-count");
+    document.getElementById("dog").onclick = () => {
+      coins++;
+      counter.textContent = "Монети: " + coins;
+    }
+  </script>
+</body>
+</html>
