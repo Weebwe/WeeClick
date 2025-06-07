@@ -1,0 +1,50 @@
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #d0f0ff;
+}
+.splash-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.logo {
+  max-width: 200px;
+}
+.progress-bar {
+  width: 80%;
+  height: 20px;
+  background: #ccc;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 20px;
+}
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: #4caf50;
+  transition: width 0.1s ease-in-out;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+}
+.game-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60vh;
+}
+.game-area img {
+  width: 200px;
+  cursor: pointer;
+}
+.footer {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px;
+}
