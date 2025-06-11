@@ -14,9 +14,25 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div id="loader-screen" class="w-full h-full fixed top-0 left-0 z-50 bg-white flex flex-col items-center justify-center"> <div class="flex flex-col items-center"> <div id="logo-image-container"> <img src="https://weebwe.github.io/WeeClick/logo.png" alt="WeeClick Logo" class="w-32 h-32"> </div> <div id="animated-logo-text" class="mt-4">WeeClick</div> <div id="progress-bar-container"> <div id="progress-bar"></div> </div> </div> <p id="copyright-notice">&copy; <span id="copyright-year"></span> WeeClick. Всі права захищено.</p> </div>
-    <div id="bot-block-screen" class="w-full h-full fixed top-0 left-0 z-40 flex-col items-center justify-center bg-white hidden"> <i class="fas fa-robot text-6xl text-red-500 mb-4"></i> <h1 class="text-2xl font-bold text-gray-800">Доступ заборонено</h1> <p class="text-gray-600 mt-2">На жаль, ботам вхід не дозволено.</p> </div>
+    <div id="loader-screen" class="w-full h-full fixed top-0 left-0 z-50 bg-white flex flex-col items-center justify-center">
+        <div class="flex flex-col items-center">
+            <div id="logo-image-container">
+                <img src="https://weebwe.github.io/WeeClick/logo.png" alt="WeeClick Logo" class="w-32 h-32">
+            </div>
+            <div id="animated-logo-text" class="mt-4">WeeClick</div>
+            <div id="progress-bar-container">
+                <div id="progress-bar"></div>
+            </div>
+        </div>
+        <p id="copyright-notice">&copy; <span id="copyright-year"></span> WeeClick. Всі права захищено.</p>
+    </div>
 
+    <div id="bot-block-screen" class="w-full h-full fixed top-0 left-0 z-40 flex-col items-center justify-center bg-white hidden">
+        <i class="fas fa-robot text-6xl text-red-500 mb-4"></i>
+        <h1 class="text-2xl font-bold text-gray-800">Доступ заборонено</h1>
+        <p class="text-gray-600 mt-2">На жаль, ботам вхід не дозволено.</p>
+    </div>
+    
     <div id="main-app" class="w-full h-full flex-col hidden">
         <header class="w-full bg-[#0094FE] shadow-md p-3 flex justify-between items-center z-20 flex-shrink-0">
             <button id="profile-btn" class="header-btn font-semibold py-2 px-4 rounded-xl flex items-center">
@@ -42,11 +58,15 @@
 
         <main class="flex-grow w-full overflow-y-auto relative bg-white">
             <section id="home-page" class="page w-full h-full flex flex-col items-center justify-center p-4">
-                </section>
+                <div id="clicker-button-container" class="relative flex items-center justify-center">
+                    <img id="clicker-button" src="https://weebwe.github.io/WeeClick/logo.png" alt="Click Me" class="w-48 h-48 md:w-64 md:h-64 rounded-full cursor-pointer select-none">
+                </div>
+                <p class="mt-6 text-gray-500 font-medium">Натискай, щоб заробити!</p>
+            </section>
             
             <section id="tasks-page" class="page hidden p-4 space-y-3">
                  <h1 class="text-2xl font-bold mb-4">Завдання</h1>
-                 <div class="task-card bg-white p-4 rounded-xl border border-gray-200 space-y-3">
+                <div class="task-card bg-white p-4 rounded-xl border border-gray-200 space-y-3">
                     <div>
                         <h3 class="font-bold">Підписка на групу</h3>
                         <p class="text-sm text-gray-600">Приєднайтесь до нашої спільноти.</p>
@@ -68,10 +88,29 @@
                     <button class="mt-2 bg-[#0094FE] hover:bg-[#007acd] text-white w-full py-2 rounded-lg font-semibold">Запросити</button>
                 </div>
             </section>
-            </main>
+             <section id="shop-page" class="page hidden p-4">
+                 <h1 class="text-2xl font-bold mb-4">Магазин</h1>
+                 <div class="text-center text-gray-500 mt-16">
+                     <i class="fas fa-store text-5xl mb-4"></i>
+                     <p>Скоро тут з'являться круті покращення!</p>
+                 </div>
+             </section>
+             <section id="leaders-page" class="page hidden p-4">
+                 <h1 class="text-2xl font-bold mb-4">Таблиця лідерів</h1>
+                 <div class="text-center text-gray-500 mt-16">
+                     <i class="fas fa-trophy text-5xl text-yellow-500 mb-4"></i>
+                     <p>Змагайся з друзями! Скоро...</p>
+                 </div>
+             </section>
+        </main>
         
         <nav class="bottom-nav w-full p-2 flex justify-around items-center relative z-20">
-            </nav>
+            <div id="nav-indicator"></div>
+            <button data-page="home-page" class="nav-item active flex-1 flex flex-col items-center justify-center z-10 py-2"><i class="fas fa-home text-2xl"></i><span class="text-xs mt-1">Головна</span></button>
+            <button data-page="tasks-page" class="nav-item flex-1 flex flex-col items-center justify-center z-10 py-2"><i class="fas fa-tasks text-2xl"></i><span class="text-xs mt-1">Завдання</span></button>
+            <button data-page="shop-page" class="nav-item flex-1 flex flex-col items-center justify-center z-10 py-2"><i class="fas fa-store text-2xl"></i><span class="text-xs mt-1">Магазин</span></button>
+            <button data-page="leaders-page" class="nav-item flex-1 flex flex-col items-center justify-center z-10 py-2"><i class="fas fa-trophy text-2xl"></i><span class="text-xs mt-1">Лідери</span></button>
+        </nav>
     </div>
 
     <div id="profile-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
@@ -122,7 +161,7 @@
                 </div>
             </div>
 
-             <div id="wallet-info" class="pt-4 border-t border-gray-100">
+            <div id="wallet-info" class="pt-4 border-t border-gray-100">
                 <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Підключений гаманець</h2>
                 <p id="wallet-address" class="text-sm font-mono text-center bg-gray-100 text-gray-600 p-2 rounded-lg break-all"></p>
             </div>
