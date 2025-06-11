@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.expand();
 
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-        manifestUrl: 'https://weebwe.github.io/WeeClick/manifest.json',
+        manifestUrl: 'https://weebwe.github.io/WeeClick/manifest.json', // Замініть на ваш URL маніфесту
         buttonRootId: 'ton-connect-header'
     });
 
@@ -202,10 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
         closeProfileBtn.addEventListener('click', hideProfileModal);
         profileModalBackdrop.addEventListener('click', hideProfileModal);
         
-        tonConnectUI.onStatusChange(wallet => {
-             // Миттєво оновлюємо UI при зміні статусу гаманця
-            updateWalletUI(wallet);
-        });
+        tonConnectUI.onStatusChange(updateWalletUI);
     }
 
     function toggleMusic() {
@@ -228,15 +225,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateSettingsUI() {
         if(!toggleMusicBtn || !toggleEffectsBtn) return;
-        // ... (решта коду без змін)
+
+        const musicIcon = toggleMusicBtn.querySelector('i');
+        if (isMusicEnabled) {
+            toggleMusicBtn.classList.add('active');
+            musicIcon.className = 'fas fa-volume-up';
+        } else {
+            toggleMusicBtn.classList.remove('active');
+            musicIcon.className = 'fas fa-volume-mute';
+        }
+        
+        const effectsIcon = toggleEffectsBtn.querySelector('i');
+        if (areEffectsEnabled) {
+            toggleEffectsBtn.classList.add('active');
+            effectsIcon.className = 'fas fa-star';
+        } else {
+            toggleEffectsBtn.classList.remove('active');
+            effectsIcon.className = 'fas fa-star-half-alt';
+        }
     }
 
     function updateAllStatsUI() {
-        // ... (решта коду без змін)
+        const formattedScore = score.toLocaleString('uk-UA');
+        const formattedScore2 = score2.toLocaleString('uk-UA');
+
+        scoreDisplay.textContent = formattedScore;
+        score2Display.textContent = formattedScore2;
+        livesDisplay.textContent = lives;
+        
+        if (profileScoreDisplay) profileScoreDisplay.textContent = formattedScore;
+        if (profileScore2Display) profileScore2Display.textContent = formattedScore2;
     }
 
     function animateClick(e) {
-        // ... (решта коду без змін)
+        if (areEffectsEnabled) {
+            clickSound.currentTime = 0;
+            clickSound.play().catch(e => console.error("Не вдалося відтворити звук кліку:", e));
+        }
+        
+        const animation = document.createElement('span');
+        animation.className = 'click-animation';
+        animation.textContent = '+1';
+        const rect = clickerContainer.getBoundingClientRect();
+        const x = e.clientX - rect.left - 15;
+        const y = e.clientY - rect.top - 30;
+        animation.style.left = `${x}px`;
+        animation.style.top = `${y}px`;
+        clickerContainer.appendChild(animation);
+        setTimeout(() => animation.remove(), 1000);
     }
 
     function updateTaskView(taskId, shouldMove = true) {
@@ -277,17 +313,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function showPage(pageId) {
-        // ... (решта коду без змін)
+        pages.forEach(page => {
+            if (page.id === pageId) {
+                page.classList.add('page-active');
+            } else {
+                page.classList.remove('page-active');
+            }
+        });
     }
 
     function updateActiveNavItem(activeItem) {
-        // ... (решта коду без змін)
+        navItems.forEach(item => {
+            item.classList.remove('active');
+        });
+        activeItem.classList.add('active');
     }
 
-    // ===== ЗМІНЕНО: Додано оновлення гаманця при відкритті =====
     function showProfileModal() {
         updateAllStatsUI();
-        updateWalletUI(tonConnectUI.wallet); // <-- ОСЬ ВИПРАВЛЕННЯ
         profileModal.classList.remove('hidden');
         setTimeout(() => {
             profileModalBackdrop.classList.remove('opacity-0');
@@ -296,7 +339,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function hideProfileModal() {
-        // ... (решта коду без змін)
+        profileModalBackdrop.classList.add('opacity-0');
+        profileModalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => profileModal.classList.add('hidden'), 300);
     }
 
     function updateWalletUI(wallet) {
