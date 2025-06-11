@@ -29,20 +29,21 @@ body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color
     box-shadow: 0 -4px 12px rgba(0,0,0,0.08); 
     flex-shrink: 0; 
 }
-#nav-indicator { 
-    width: 40px; 
-    height: 40px; 
-    background-color: white;
-    opacity: 0.25;
-    border-radius: 50%; 
-    position: absolute; 
-    bottom: 20px; 
-    transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); 
-    z-index: 0; 
+#nav-indicator {
+    position: absolute;
+    top: 8px;
+    bottom: 8px;
+    background-color: #22c55e; /* Зелений колір */
+    opacity: 0.3; /* Ефект напівпрозорої лінзи */
+    border-radius: 12px; /* Округлені кути */
+    transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55), width 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    z-index: 0;
 }
 .nav-item {
     color: white;
     opacity: 0.75;
+    position: relative; 
+    z-index: 1; 
 }
 .nav-item.active {
     opacity: 1;
@@ -77,8 +78,29 @@ body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color
 .task-button-secondary {
     background-color: #e2e8f0;
     color: #4a5568;
-    text-decoration: none; /* Додано для тега <a> */
+    text-decoration: none;
 }
 .task-button-secondary:hover {
     background-color: #cbd5e0;
+}
+
+/* Стиль для виконаних завдань */
+#tasks-page {
+    display: flex;
+    flex-direction: column;
+}
+.task-card.completed {
+    opacity: 0.6;
+    order: 1; /* Поміщає виконані завдання в кінець списку */
+}
+
+/* Стилі для кнопок налаштувань в профілі */
+.settings-toggle {
+    background-color: #f3f4f6;
+    transition: background-color 0.2s;
+    font-weight: 500;
+}
+.settings-toggle.active {
+    background-color: #dcfce7;
+    color: #166534;
 }
