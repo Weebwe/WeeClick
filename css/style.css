@@ -35,7 +35,7 @@ body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color
     visibility: hidden; /* Ховаємо сторінку повністю */
     opacity: 0;
 }
-.page.page-active {
+.page.active {
     visibility: visible; /* Робимо активну сторінку видимою */
     opacity: 1;
     z-index: 1; /* Активна сторінка завжди зверху */
