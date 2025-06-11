@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const profileScore2Display = document.getElementById('profile-score2-display');
     const toggleMusicBtn = document.getElementById('toggle-music-btn');
     const toggleEffectsBtn = document.getElementById('toggle-effects-btn');
-    const tasksContainer = document.getElementById('tasks-page');
+    const tasksContainer = document.querySelector('#tasks-page .p-4'); // більш точний селектор
     const verifyGroupTaskBtn = document.getElementById('verify-group-task');
 
     // --- Ігровий стан, налаштування та звуки ---
@@ -79,6 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAllStatsUI();
         updateSettingsUI();
         setupEventListeners();
+        
+        showPage('home-page'); 
+
         startLoadingSimulation();
     }
 
@@ -124,10 +127,16 @@ document.addEventListener('DOMContentLoaded', () => {
             animateClick(event);
         });
         
-        verifyGroupTaskBtn.addEventListener('click', handleGroupVerification);
+        if(verifyGroupTaskBtn) {
+            verifyGroupTaskBtn.addEventListener('click', handleGroupVerification);
+        }
         
-        toggleMusicBtn.addEventListener('click', toggleMusic);
-        toggleEffectsBtn.addEventListener('click', toggleEffects);
+        if(toggleMusicBtn) {
+            toggleMusicBtn.addEventListener('click', toggleMusic);
+        }
+        if(toggleEffectsBtn) {
+            toggleEffectsBtn.addEventListener('click', toggleEffects);
+        }
 
         navItems.forEach(item => {
             item.addEventListener('click', () => {
@@ -136,9 +145,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        profileBtn.addEventListener('click', showProfileModal);
-        closeProfileBtn.addEventListener('click', hideProfileModal);
-        profileModalBackdrop.addEventListener('click', hideProfileModal);
+        if(profileBtn) {
+            profileBtn.addEventListener('click', showProfileModal);
+        }
+        if(closeProfileBtn) {
+            closeProfileBtn.addEventListener('click', hideProfileModal);
+        }
+        if(profileModalBackdrop) {
+            profileModalBackdrop.addEventListener('click', hideProfileModal);
+        }
+        
         tonConnectUI.onStatusChange(updateWalletUI);
     }
 
@@ -161,6 +177,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateSettingsUI() {
+        if(!toggleMusicBtn || !toggleEffectsBtn) return;
+
         const musicIcon = toggleMusicBtn.querySelector('i');
         if (isMusicEnabled) {
             toggleMusicBtn.classList.add('active');
@@ -228,16 +246,25 @@ document.addEventListener('DOMContentLoaded', () => {
             joinButton.style.pointerEvents = 'none';
         }
         
-        tasksContainer.appendChild(taskCard);
+        if(tasksContainer) {
+            tasksContainer.appendChild(taskCard);
+        }
     }
     
     function showPage(pageId) {
-        pages.forEach(page => page.classList.add('hidden'));
-        document.getElementById(pageId)?.classList.remove('hidden');
+        pages.forEach(page => {
+            if (page.id === pageId) {
+                page.classList.add('page-active');
+            } else {
+                page.classList.remove('page-active');
+            }
+        });
     }
 
     function updateActiveNavItem(activeItem) {
-        navItems.forEach(item => item.classList.remove('active'));
+        navItems.forEach(item => {
+            item.classList.remove('active');
+        });
         activeItem.classList.add('active');
     }
 
