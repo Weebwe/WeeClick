@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeeClick</title>
+    <!-- Підключення скрипта Telegram Web App -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --corporate-blue: #0094FE;
+            --corporate-white: #fff;
+            --dark-text: #222;
+            --shadow-light: rgba(0, 0, 0, 0.1);
+            --shadow-medium: rgba(0, 0, 0, 0.2);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--corporate-white);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- ЕКРАН ЗАВАНТАЖЕННЯ --- */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--corporate-white);
+            color: var(--corporate-blue);
+            text-align: center;
+            z-index: 10;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .weeclick-logo-wrapper {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 30px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 8px var(--shadow-light);
+            border-radius: 50%;
+            background-color: var(--corporate-white);
+            border: 8px solid var(--corporate-blue);
+            perspective: 500px;
+            transform-style: preserve-3d;
+            animation: weeclickRotate3D 4s linear infinite;
+        }
+
+        .weeclick-logo-text {
+            font-size: 3.5em;
+            font-weight: bold;
+            color: var(--corporate-blue);
+            transform-style: preserve-3d;
+            animation: weeclickTextRotate3D 4s linear infinite;
+        }
+
+        @keyframes weeclickRotate3D {
+            0% { transform: perspective(500px) rotateY(0deg) rotateX(-10deg); }
+            100% { transform: perspective(500px) rotateY(360deg) rotateX(-10deg); }
+        }
+
+        @keyframes weeclickTextRotate3D {
+            0% { transform: rotateY(0deg) translateZ(8px); }
+            100% { transform: rotateY(-360deg) translateZ(8px); }
+        }
+        
+        .progress-container {
+            width: 250px;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            border: 2px solid var(--corporate-blue);
+            box-shadow: inset 0 1px 3px var(--shadow-medium);
+            overflow: hidden;
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background: var(--corporate-blue);
+            border-radius: 8px;
+            transition: width 0.1s linear;
+        }
+        
+        #loading-text {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: 500;
+            color: var(--corporate-blue);
+        }
+        
+        /* ЗМІНА: Додано футер з копірайтом */
+        .loading-footer {
+            position: absolute;
+            bottom: 20px;
+            font-size: 0.9em;
+            color: #aaa;
+        }
+
+        /* --- ЕКРАН ДАНИХ КОРИСТУВАЧА --- */
+        #user-data-screen {
+            display: none; /* Приховано за замовчуванням */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            animation: fadeInScreen 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeInScreen {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .user-card {
+            background: var(--corporate-white);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px var(--shadow-medium);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            border: 1px solid #e0e0e0;
+        }
+
+        .user-card h2 {
+            color: var(--corporate-blue);
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+
+        .user-card p {
+            font-size: 1.1em;
+            color: var(--dark-text);
+            margin: 12px 0;
+            text-align: left;
+        }
+
+        .user-card p strong {
+            color: var(--corporate-blue);
+            margin-right: 8px;
+        }
+        
+        .user-card span {
+            font-weight: 500;
+        }
+
+        .user-card .note {
+            font-size: 0.9em;
+            color: #999;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Екран №1: Завантаження -->
+    <div id="loading-screen">
+        <div class="weeclick-logo-wrapper">
+            <span class="weeclick-logo-text">WEE</span>
+        </div>
+        <div class="progress-container">
+            <div id="progress-bar"></div>
+        </div>
+        <p id="loading-text">Завантаження... 0%</p>
+        
+        <!-- Новий футер з копірайтом -->
+        <footer class="loading-footer">
+            © 2024 Weebwe LLC. Всі права захищені.
+        </footer>
+    </div>
+
+    <!-- Екран №2: Дані користувача -->
+    <div id="user-data-screen">
+        <div class="user-card">
+            <h2>Профіль гравця</h2>
+            <p><strong>ID:</strong> <span id="user-id"></span></p>
+            <p><strong>Ім'я:</strong> <span id="user-firstname"></span></p>
+            <p><strong>Прізвище:</strong> <span id="user-lastname"></span></p>
+            <p><strong>Нікнейм:</strong> <span id="user-username"></span></p>
+            <p><strong>Мова:</strong> <span id="user-language"></span></p>
+
+            <p class="note">Ці дані отримано з вашого профілю Telegram.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- ЛОГІКА ЗАВАНТАЖЕННЯ ---
+            const loadingDuration = 3000; // Тривалість завантаження 3 секунди
+            const progressBar = document.getElementById('progress-bar');
+            const loadingText = document.getElementById('loading-text');
+            const loadingScreen = document.getElementById('loading-screen');
+            const userDataScreen = document.getElementById('user-data-screen');
+
+            let progress = 0;
+            const intervalTime = loadingDuration / 100;
+
+            const interval = setInterval(() => {
+                progress++;
+                if (progress <= 100) {
+                    progressBar.style.width = progress + '%';
+                    loadingText.textContent = `Завантаження... ${progress}%`;
+                }
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    
+                    // Запускаємо відображення даних користувача
+                    displayUserData();
+
+                    // Плавно ховаємо екран завантаження
+                    loadingScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                        // Показуємо екран з даними
+                        userDataScreen.style.display = 'flex';
+                    }, 500); // Час має відповідати `transition` в CSS
+                }
+            }, intervalTime);
+
+
+            // --- ЛОГІКА ВІДОБРАЖЕННЯ ДАНИХ TELEGRAM ---
+            function displayUserData() {
+                try {
+                    // Telegram.WebApp.initDataUnsafe.user - це об'єкт з даними користувача,
+                    // який надає сам Telegram, коли додаток відкрито через нього.
+                    const user = window.Telegram.WebApp.initDataUnsafe.user;
+
+                    if (user) {
+                        // Якщо об'єкт user існує, заповнюємо поля
+                        document.getElementById('user-id').textContent = user.id || 'Немає';
+                        document.getElementById('user-firstname').textContent = user.first_name || 'Немає';
+                        document.getElementById('user-lastname').textContent = user.last_name || 'Немає';
+                        document.getElementById('user-username').textContent = user.username ? `@${user.username}` : 'Немає';
+                        document.getElementById('user-language').textContent = user.language_code || 'Немає';
+                    } else {
+                         throw new Error("Не в середовищі Telegram");
+                    }
+                } catch (error) {
+                    // Якщо сталася помилка (наприклад, сторінку відкрили у звичайному браузері),
+                    // показуємо тестові дані
+                    console.warn('Could not retrieve Telegram user data. Displaying mock data.', error);
+                    document.getElementById('user-id').textContent = '123456789';
+                    document.getElementById('user-firstname').textContent = 'Тестовий';
+                    document.getElementById('user-lastname').textContent = 'Користувач';
+                    document.getElementById('user-username').textContent = '@test_user';
+                    document.getElementById('user-language').textContent = 'uk';
+                    // Змінюємо примітку
+                    const note = document.querySelector('.user-card .note');
+                    if (note) {
+                        note.innerHTML = '<strong>Тестовий режим.</strong><br>Відкрийте додаток у Telegram, щоб побачити свої дані.';
+                    }
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>
+
