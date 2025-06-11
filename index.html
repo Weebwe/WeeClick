@@ -154,7 +154,6 @@
 
     <!-- 1. Екран завантаження -->
     <div id="loader-screen" class="w-full h-full fixed top-0 left-0 z-50 bg-white">
-        <!-- Цей div центрує логотип і прогрес-бар -->
         <div class="w-full h-full flex flex-col items-center justify-center">
             <div class="flex flex-col items-center">
                 <div id="logo-image-container">
@@ -166,8 +165,7 @@
                 </div>
             </div>
         </div>
-        <!-- Корпоративні права, позиціоновані окремо -->
-        <p id="copyright-notice">&copy; 2024 WeeClick. Всі права захищено.</p>
+        <p id="copyright-notice">&copy; <span id="copyright-year"></span> WeeClick. Всі права захищено.</p>
     </div>
     
     <!-- 2. Екран блокування для ботів -->
@@ -328,7 +326,12 @@
                     loaderScreen.style.opacity = '0';
                     mainApp.classList.remove('hidden');
                     mainApp.classList.add('flex');
-                    setTimeout(() => loaderScreen.style.display = 'none', 500);
+                    
+                    // Відкладений виклик для правильного розрахунку розмірів
+                    setTimeout(() => {
+                        updateNavIndicator(0);
+                        loaderScreen.style.display = 'none';
+                    }, 100);
                 }
             }, 25);
         }
@@ -336,6 +339,9 @@
         // --- Основна логіка ---
         function initializeApp() {
             const user = tg.initDataUnsafe?.user;
+            
+            // Динамічне оновлення року
+            document.getElementById('copyright-year').textContent = new Date().getFullYear();
             
             if (user?.is_bot) {
                 loaderScreen.style.display = 'none';
@@ -348,7 +354,6 @@
             updateWalletUI(tonConnectUI.wallet);
             updateStats();
             setupEventListeners();
-            updateNavIndicator(0);
             
             startLoadingSimulation();
         }
@@ -436,10 +441,4 @@
         
         function hideProfileModal() {
             profileModalBackdrop.classList.add('opacity-0');
-            profileModalContent.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => profileModal.classList.add('hidden'), 300);
-        }
-
-        function updateWalletUI(wallet) {
-            if (wallet) {
-  
+   
