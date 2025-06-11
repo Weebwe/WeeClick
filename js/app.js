@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let areEffectsEnabled = true;
     let playerDocRef; // Посилання на документ гравця в базі даних
 
-    let isMusicUnmuted = false; 
+    let isMusicUnmuted = false;
 
     const clickSound = new Audio('sounds/click.mp3');
     const backgroundMusic = new Audio('sounds/background.mp3');
@@ -67,15 +67,27 @@ document.addEventListener('DOMContentLoaded', () => {
     backgroundMusic.volume = 0.3;
 
     // --- Основна логіка ---
-    
+
     async function initializeApp() {
+        // 1. ЗАПУСКАЄМО АНІМАЦІЮ ВІДРАЗУ!
+        startLoadingSimulation();
+
         const user = tg.initDataUnsafe?.user;
         if (!user) {
             console.error("Не вдалося ідентифікувати користувача Telegram.");
-            document.body.innerHTML = "Помилка ідентифікації. Будь ласка, перезапустіть гру.";
+            document.getElementById('loader-screen').innerHTML = "Помилка ідентифікації. Перезапустіть гру.";
+            return;
+        }
+        
+        // Перевірка на бота (опціонально)
+        if (user.is_bot) {
+            botBlockScreen.classList.remove('hidden');
+            botBlockScreen.classList.add('flex');
+            loaderScreen.style.display = 'none';
             return;
         }
 
+        // 2. У ФОНОВОМУ РЕЖИМІ працюємо з базою даних.
         const userId = user.id.toString();
         playerDocRef = doc(db, "players", userId);
 
@@ -91,9 +103,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 completedTasks = data.completedTasks ?? [];
                 isMusicEnabled = data.settings?.isMusicEnabled ?? true;
                 areEffectsEnabled = data.settings?.areEffectsEnabled ?? true;
-                
+
                 completedTasks.forEach(taskId => updateTaskView(taskId, false));
-                
             } else {
                 console.log("Створення нового гравця...");
                 const initialData = {
@@ -108,27 +119,28 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error("Помилка роботи з Firestore:", error);
             tg.showAlert("Не вдалося завантажити профіль. Перевірте з'єднання з інтернетом.");
-            return;
         }
 
+        // 3. Налаштовуємо решту, поки йде анімація.
         populateProfileData(user);
         updateAllStatsUI();
         updateSettingsUI();
         setupEventListeners();
-        showPage('home-page'); 
-        startLoadingSimulation();
+        showPage('home-page');
     }
 
     async function saveProgress(dataToSave) {
         if (!playerDocRef) return;
         try {
-            await updateDoc(playerDocRef, dataToSave);
+            // Додаємо поле lastUpdated для відстеження активності
+            const dataWithTimestamp = { ...dataToSave, lastUpdated: serverTimestamp() };
+            await updateDoc(playerDocRef, dataWithTimestamp);
             console.log("Прогрес збережено:", dataToSave);
         } catch (error) {
             console.error("Помилка збереження прогресу:", error);
         }
     }
-    
+
     function startLoadingSimulation() {
         if (isMusicEnabled) {
             backgroundMusic.muted = true;
@@ -137,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         let progress = 0;
         const interval = setInterval(() => {
-            progress += 1;
+            progress += 2; // Трохи швидше
             if (progressBar) progressBar.style.width = progress + '%';
             if (progress >= 100) {
                 clearInterval(interval);
@@ -148,43 +160,51 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 setTimeout(() => {
                     if (loaderScreen) loaderScreen.style.display = 'none';
-                }, 500);
+                }, 500); // Час має відповідати transition в CSS
             }
-        }, 25);
+        }, 30); // Інтервал
     }
-    
+
     function populateProfileData(user) {
         if (!user) return;
         userName.textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Guest';
         userUsername.textContent = user.username ? `@${user.username}` : 'Нікнейм не вказано';
-        if (user.photo_url) userPhoto.src = user.photo_url;
+        if (user.photo_url) {
+            userPhoto.src = user.photo_url;
+        } else {
+            userPhoto.src = 'https://placehold.co/128x128/E0E0E0/BDBDBD?text=?'; // Заглушка, якщо фото немає
+        }
     }
 
     function setupEventListeners() {
         clickerButton.addEventListener('click', (event) => {
+            // Перший клік користувача вмикає музику, якщо вона дозволена
             if (isMusicEnabled && !isMusicUnmuted) {
                 backgroundMusic.muted = false;
                 isMusicUnmuted = true;
+                backgroundMusic.play().catch(e => console.error("Could not play music:", e));
             }
             score++;
             updateAllStatsUI();
             animateClick(event);
-            
+
+            // Зберігаємо прогрес кожні 20 кліків, щоб не перевантажувати базу
             if (score % 20 === 0) {
                 saveProgress({ score: score });
             }
         });
-        
+
         allTaskCards.forEach(card => {
             const button = card.querySelector('.task-button, .bg-\\[\\#0094FE\\]');
             if (button) {
                 button.addEventListener('click', () => handleTaskCompletion(card));
             }
         });
-        
+
         toggleMusicBtn.addEventListener('click', toggleMusic);
         toggleEffectsBtn.addEventListener('click', toggleEffects);
 
+        // Зберігаємо прогрес, коли користувач згортає додаток
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'hidden') {
                 saveProgress({ score, score2, lives });
@@ -201,9 +221,8 @@ document.addEventListener('DOMContentLoaded', () => {
         profileBtn.addEventListener('click', showProfileModal);
         closeProfileBtn.addEventListener('click', hideProfileModal);
         profileModalBackdrop.addEventListener('click', hideProfileModal);
-        
+
         tonConnectUI.onStatusChange(wallet => {
-             // Миттєво оновлюємо UI при зміні статусу гаманця
             updateWalletUI(wallet);
         });
     }
@@ -215,6 +234,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (isMusicEnabled) {
             backgroundMusic.play().catch(e => console.error("Could not play music:", e));
+            isMusicUnmuted = true; // Якщо вмикаємо вручну, то вона має грати
+            backgroundMusic.muted = false;
         } else {
             backgroundMusic.pause();
         }
@@ -228,15 +249,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateSettingsUI() {
         if(!toggleMusicBtn || !toggleEffectsBtn) return;
-        // ... (решта коду без змін)
+        
+        const musicIcon = toggleMusicBtn.querySelector('i');
+        if (isMusicEnabled) {
+            toggleMusicBtn.classList.add('active');
+            musicIcon.className = 'fas fa-volume-up';
+        } else {
+            toggleMusicBtn.classList.remove('active');
+            musicIcon.className = 'fas fa-volume-mute';
+        }
+
+        const effectsIcon = toggleEffectsBtn.querySelector('i');
+        if (areEffectsEnabled) {
+            toggleEffectsBtn.classList.add('active');
+            effectsIcon.className = 'fas fa-star';
+        } else {
+            toggleEffectsBtn.classList.remove('active');
+            effectsIcon.className = 'fas fa-ban';
+        }
     }
 
     function updateAllStatsUI() {
-        // ... (решта коду без змін)
+        if(scoreDisplay) scoreDisplay.textContent = score.toLocaleString('uk-UA');
+        if(score2Display) score2Display.textContent = score2.toLocaleString('uk-UA');
+        if(livesDisplay) livesDisplay.textContent = lives;
+        if(profileScoreDisplay) profileScoreDisplay.textContent = score.toLocaleString('uk-UA');
+        if(profileScore2Display) profileScore2Display.textContent = score2.toLocaleString('uk-UA');
     }
 
     function animateClick(e) {
-        // ... (решта коду без змін)
+        if (!areEffectsEnabled) return;
+
+        clickSound.currentTime = 0;
+        clickSound.play().catch(err => console.error("Sound effect error:", err));
+
+        const plusOne = document.createElement('span');
+        plusOne.textContent = '+1';
+        plusOne.className = 'plus-one-animation';
+        
+        if(clickerContainer) {
+            clickerContainer.appendChild(plusOne);
+            const rect = clickerContainer.getBoundingClientRect();
+            plusOne.style.left = `${e.clientX - rect.left}px`;
+            plusOne.style.top = `${e.clientY - rect.top}px`;
+
+            setTimeout(() => {
+                plusOne.remove();
+            }, 1000);
+        }
     }
 
     function updateTaskView(taskId, shouldMove = true) {
@@ -251,6 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const joinButton = taskCard.querySelector('.task-button-secondary');
             if (joinButton) {
                 joinButton.style.pointerEvents = 'none';
+                joinButton.classList.add('disabled');
             }
             if (tasksContainer && shouldMove) {
                 tasksContainer.appendChild(taskCard);
@@ -277,38 +338,52 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function showPage(pageId) {
-        // ... (решта коду без змін)
+        pages.forEach(page => {
+            if (page.id === pageId) {
+                page.classList.add('active');
+            } else {
+                page.classList.remove('active');
+            }
+        });
     }
 
     function updateActiveNavItem(activeItem) {
-        // ... (решта коду без змін)
+        navItems.forEach(item => {
+            item.classList.remove('active');
+        });
+        activeItem.classList.add('active');
     }
 
-    // ===== ЗМІНЕНО: Додано оновлення гаманця при відкритті =====
     function showProfileModal() {
         updateAllStatsUI();
-        updateWalletUI(tonConnectUI.wallet); // <-- ОСЬ ВИПРАВЛЕННЯ
+        updateWalletUI(tonConnectUI.wallet);
         profileModal.classList.remove('hidden');
         setTimeout(() => {
-            profileModalBackdrop.classList.remove('opacity-0');
-            profileModalContent.classList.remove('scale-95', 'opacity-0');
+            profileModal.classList.add('active');
+            if(profileModalContent) profileModalContent.classList.add('active');
         }, 10);
     }
 
     function hideProfileModal() {
-        // ... (решта коду без змін)
+        if(profileModalContent) profileModalContent.classList.remove('active');
+        profileModal.classList.remove('active');
+        setTimeout(() => {
+            profileModal.classList.add('hidden');
+        }, 300);
     }
 
     function updateWalletUI(wallet) {
         if (wallet) {
-            const friendlyAddress = TON_CONNECT_UI.toUserFriendlyAddress(wallet.account.address, wallet.account.chain === '-3');
-            walletAddressP.textContent = friendlyAddress;
-            walletAddressP.classList.remove('text-gray-600', 'bg-gray-100');
-            walletAddressP.classList.add('text-blue-700', 'bg-blue-50');
+            const friendlyAddress = TON_CONNECT_UI.toUserFriendlyAddress(wallet.account.address, wallet.account.chain === -3); // -3 for testnet
+            if(walletAddressP) {
+                walletAddressP.textContent = friendlyAddress;
+                walletAddressP.classList.add('active');
+            }
         } else {
-            walletAddressP.textContent = 'Гаманець не підключено';
-            walletAddressP.classList.remove('text-blue-700', 'bg-blue-50');
-            walletAddressP.classList.add('text-gray-600', 'bg-gray-100');
+            if(walletAddressP) {
+                walletAddressP.textContent = 'Гаманець не підключено';
+                walletAddressP.classList.remove('active');
+            }
         }
     }
     
