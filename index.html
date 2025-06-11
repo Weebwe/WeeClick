@@ -2,140 +2,246 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Профіль користувача</title>
-    <!-- Tailwind CSS для стилізації -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>WeeClick Профіль</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- TonConnect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <!-- Шрифт Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --brand-color: #0094FE;
+            --brand-color-hover: #007acd;
+        }
         body {
             font-family: 'Inter', sans-serif;
-            /* Використовуємо кольори, надані Telegram для теми */
-            background-color: var(--tg-theme-bg-color, #f3f4f6);
-            color: var(--tg-theme-text-color, #111827);
+            background-color: #f0f2f5;
+            color: #1a202c;
+            overflow: hidden;
         }
-        /* Анімація для завантажувача */
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        /* --- Стилі для екрану завантаження та анімації --- */
+        #loader-screen {
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
-        .loader {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left-color: #0094FE;
-            animation: spin 1s linear infinite;
+        #animated-logo {
+            font-size: 3.5rem; /* 56px */
+            font-weight: 900;
+            color: var(--brand-color);
+            display: inline-block;
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: .15em solid var(--brand-color);
+            letter-spacing: .1em;
+            animation: 
+                typing 2s steps(8, end),
+                blink-caret .75s step-end infinite;
         }
-        /* Кастомізація кнопки TonConnect */
-        #ton-connect-button .tc-button {
-            background-color: #0094FE !important;
+        /* Анімація друкування тексту */
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        /* Анімація блимання курсора */
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: var(--brand-color); }
+        }
+
+        #progress-bar-container {
+            width: 80%;
+            max-width: 300px;
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 2rem; /* Відступ від логотипа */
+        }
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: var(--brand-color);
+            transition: width 0.1s linear;
+        }
+        /* --- Інші стилі --- */
+        #ton-connect-placeholder .tc-button {
+            background-color: var(--brand-color) !important;
             color: white !important;
             width: 100%;
+            border-radius: 12px !important;
+            font-weight: 600 !important;
             transition: background-color 0.2s;
         }
-        #ton-connect-button .tc-button:hover {
-            background-color: #007acd !important;
+        #ton-connect-placeholder .tc-button:hover {
+            background-color: var(--brand-color-hover) !important;
+        }
+        .premium-badge {
+             background: linear-gradient(135deg, #6B49F7 0%, #D856F2 100%);
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body class="w-full h-screen">
 
-    <!-- 1. Екран завантаження -->
-    <div id="loader-container" class="flex flex-col items-center justify-center text-center">
-        <div class="loader w-12 h-12 rounded-full"></div>
-        <p class="mt-4 text-lg font-medium">Завантаження даних...</p>
+    <!-- 1. Екран завантаження з анімованим лого -->
+    <div id="loader-screen" class="w-full h-full fixed top-0 left-0 z-50">
+        <div id="animated-logo">WeeClick</div>
+        <div id="progress-bar-container">
+            <div id="progress-bar"></div>
+        </div>
+        <p id="loading-status" class="mt-4 text-gray-500 text-sm">Ініціалізація...</p>
     </div>
 
-    <!-- 2. Профіль користувача (схований за замовчуванням) -->
-    <div id="profile-container" class="w-full max-w-sm p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-xl text-center hidden">
-        
-        <!-- Аватарка та ім'я -->
-        <img id="user-photo" src="https://placehold.co/128x128/E0E0E0/BDBDBD?text=User" alt="Аватар користувача" 
-             class="w-24 h-24 rounded-full mx-auto border-4 border-gray-200">
-        
-        <h1 id="user-name" class="text-2xl font-bold mt-4">Ім'я користувача</h1>
-        <p class="text-sm text-gray-500">Профіль Telegram</p>
+    <!-- 2. Основний контент (профіль) -->
+    <div id="main-content" class="w-full h-full p-4 hidden overflow-y-auto">
+        <div class="w-full max-w-md mx-auto bg-white rounded-2xl shadow-lg p-6 space-y-5">
+            
+            <div class="flex items-center space-x-4">
+                <img id="user-photo" src="https://placehold.co/128x128/E0E0E0/BDBDBD?text=?" alt="Аватар" 
+                     class="w-16 h-16 rounded-full border-2 border-gray-200 object-cover">
+                <div>
+                    <h1 id="user-name" class="text-xl font-bold text-gray-800">Ім'я користувача</h1>
+                    <p id="user-username" class="text-sm text-gray-500">@username</p>
+                </div>
+            </div>
 
-        <!-- Інформація про гаманець (з'являється після підключення) -->
-        <div id="wallet-info" class="mt-5 pt-4 border-t border-gray-200 hidden">
-             <h2 class="text-sm font-medium text-gray-600">Адреса TON гаманця:</h2>
-             <p id="wallet-address" class="text-sm font-mono text-blue-600 break-all mt-1"></p>
+            <div>
+                <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Деталі профілю</h2>
+                <div class="space-y-2 text-sm bg-gray-50 p-3 rounded-lg">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">User ID:</span>
+                        <span id="user-id" class="font-mono bg-gray-200 px-2 py-0.5 rounded"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Мова:</span>
+                        <span id="user-lang" class="font-medium"></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500">Статус:</span>
+                        <span id="user-premium" class="font-semibold"></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500">Тип акаунту:</span>
+                        <span id="user-is-bot" class="font-semibold"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="wallet-info" class="pt-4 border-t border-gray-100 hidden">
+                 <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Підключений гаманець</h2>
+                 <p id="wallet-address" class="text-sm font-mono text-center bg-blue-50 text-blue-700 p-2 rounded-lg break-all"></p>
+            </div>
+
+            <div id="ton-connect-placeholder" class="pt-2"></div>
         </div>
-
-        <!-- Кнопка для підключення гаманця -->
-        <div id="ton-connect-button" class="mt-6 w-full">
-            <!-- Сюди TonConnect UI додасть свою кнопку -->
-        </div>
-
     </div>
 
     <script type="module">
-        // Отримуємо доступ до елементів DOM
-        const loaderContainer = document.getElementById('loader-container');
-        const profileContainer = document.getElementById('profile-container');
+        // --- Елементи DOM ---
+        const loaderScreen = document.getElementById('loader-screen');
+        const progressBar = document.getElementById('progress-bar');
+        const loadingStatus = document.getElementById('loading-status');
+        const mainContent = document.getElementById('main-content');
+        
         const userPhoto = document.getElementById('user-photo');
         const userName = document.getElementById('user-name');
+        const userUsername = document.getElementById('user-username');
+        const userId = document.getElementById('user-id');
+        const userLang = document.getElementById('user-lang');
+        const userPremium = document.getElementById('user-premium');
+        const userIsBot = document.getElementById('user-is-bot');
+
         const walletInfoDiv = document.getElementById('wallet-info');
         const walletAddressP = document.getElementById('wallet-address');
 
-        // Ініціалізуємо Telegram Web App
+        // --- Ініціалізація Telegram Web App ---
         const tg = window.Telegram.WebApp;
         tg.ready();
-        
-        // --- ІНІЦІАЛІЗАЦІЯ TON CONNECT ---
+        tg.expand();
+
+        // --- Ініціалізація TON Connect з вашим маніфестом ---
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            // ВАЖЛИВО: Створіть свій manifest.json і розмістіть на вашому сервері
-            manifestUrl: 'https://gist.githubusercontent.com/siandree/734295c25cb1bac16548a3952f53489b/raw/tonconnect-manifest.json',
-            buttonRootId: 'ton-connect-button' // ID контейнера для кнопки
+            manifestUrl: 'https://weebwe.github.io/WeeClick/manifest.json',
+            buttonRootId: 'ton-connect-placeholder'
         });
 
-        // Функція для оновлення UI після підключення/відключення гаманця
-        const updateWalletUI = (wallet) => {
+        // --- Функція оновлення UI гаманця ---
+        function updateWalletUI(wallet) {
             if (wallet) {
-                // Гаманець підключено
                 const friendlyAddress = TON_CONNECT_UI.toUserFriendlyAddress(wallet.account.address, wallet.account.chain === '-3');
                 walletAddressP.textContent = friendlyAddress;
                 walletInfoDiv.classList.remove('hidden');
             } else {
-                // Гаманець відключено
                 walletInfoDiv.classList.add('hidden');
                 walletAddressP.textContent = '';
             }
-        };
-
-        // Підписуємося на зміни статусу гаманця
+        }
         tonConnectUI.onStatusChange(updateWalletUI);
 
-        // --- ЛОГІКА ЗАВАНТАЖЕННЯ ДАНИХ ---
+        // --- Логіка завантаження ---
+        function startLoading() {
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 1;
+                progressBar.style.width = progress + '%';
+                if (progress >= 20) loadingStatus.textContent = 'Отримання даних Telegram...';
+                if (progress >= 50) loadingStatus.textContent = 'Налаштування інтерфейсу...';
+                if (progress >= 80) loadingStatus.textContent = 'Завершення...';
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    loadUserData();
+                }
+            }, 25); // Трохи повільніше, щоб анімація логотипа завершилась
+        }
+
         function loadUserData() {
-            // Отримуємо дані користувача з Telegram
             const user = tg.initDataUnsafe?.user;
 
-            if (user && user.id) {
-                // Якщо дані є, показуємо їх
+            if (user) {
                 userName.textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+                userUsername.textContent = user.username ? `@${user.username}` : 'Нікнейм не вказано';
+                userId.textContent = user.id;
+                userLang.textContent = user.language_code ? user.language_code.toUpperCase() : 'N/A';
+                
                 if (user.photo_url) {
                     userPhoto.src = user.photo_url;
                 }
+                
+                if (user.is_premium) {
+                    userPremium.innerHTML = `<span class="premium-badge text-white text-xs font-bold px-2 py-1 rounded-full">Premium</span>`;
+                } else {
+                    userPremium.textContent = 'Стандарт';
+                }
+
+                if (user.is_bot) {
+                    userIsBot.textContent = '🤖 Бот';
+                    userIsBot.classList.add('text-red-500');
+                } else {
+                    userIsBot.textContent = '👤 Людина';
+                    userIsBot.classList.add('text-green-500');
+                }
+
             } else {
-                // Дані для тестування, якщо відкрити не в Telegram
-                userName.textContent = "Тестовий Користувач";
-                console.warn("Telegram user data not found. Using fallback data.");
+                // Запасні дані для тестування
+                userName.textContent = "WeeClick User";
+                userUsername.textContent = "@testuser";
+                userId.textContent = "123456789";
+                userLang.textContent = "UK";
+                userPremium.textContent = "Стандарт";
+                userIsBot.textContent = '👤 Людина';
+                userIsBot.classList.add('text-green-500');
+                console.warn("Дані Telegram не знайдено. Використовуються тестові.");
             }
 
-            // Перевіряємо, чи вже був підключений гаманець
             updateWalletUI(tonConnectUI.wallet);
-
-            // Ховаємо завантажувач і показуємо профіль
-            loaderContainer.classList.add('hidden');
-            profileContainer.classList.remove('hidden');
+            
+            loaderScreen.style.display = 'none';
+            mainContent.classList.remove('hidden');
         }
 
-        // Симулюємо завантаження (1.5 секунди) для кращого візуального досвіду
-        setTimeout(loadUserData, 1500);
-
+        window.addEventListener('load', startLoading);
     </script>
 </body>
 </html>
