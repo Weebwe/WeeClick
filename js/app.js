@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const clickerButton = document.getElementById('clicker-button');
     const clickerContainer = document.getElementById('clicker-button-container');
     const navItems = document.querySelectorAll('.nav-item');
-    const navIndicator = document.getElementById('nav-indicator');
     const pages = document.querySelectorAll('.page');
     const profileBtn = document.getElementById('profile-btn');
     const profileModal = document.getElementById('profile-modal');
@@ -101,8 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     mainApp.classList.add('flex');
                 }
                 setTimeout(() => {
-                    const initialActiveItem = document.querySelector('.nav-item.active');
-                    if (initialActiveItem) updateNavIndicator(initialActiveItem);
                     if (loaderScreen) loaderScreen.style.display = 'none';
                 }, 500);
             }
@@ -136,7 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
             item.addEventListener('click', () => {
                 showPage(item.dataset.page);
                 updateActiveNavItem(item);
-                updateNavIndicator(item);
             });
         });
 
@@ -144,10 +140,6 @@ document.addEventListener('DOMContentLoaded', () => {
         closeProfileBtn.addEventListener('click', hideProfileModal);
         profileModalBackdrop.addEventListener('click', hideProfileModal);
         tonConnectUI.onStatusChange(updateWalletUI);
-        window.addEventListener('resize', () => {
-            const activeItem = document.querySelector('.nav-item.active');
-            if (activeItem) updateNavIndicator(activeItem);
-        });
     }
 
     function toggleMusic() {
@@ -249,16 +241,8 @@ document.addEventListener('DOMContentLoaded', () => {
         activeItem.classList.add('active');
     }
 
-    function updateNavIndicator(activeItem) {
-        if (!activeItem || !navIndicator) return;
-        const newWidth = activeItem.offsetWidth;
-        const newPosition = activeItem.offsetLeft;
-        navIndicator.style.width = `${newWidth}px`;
-        navIndicator.style.transform = `translateX(${newPosition}px)`;
-    }
-
     function showProfileModal() {
-        updateAllStatsUI(); // Оновлюємо баланс при кожному відкритті профілю
+        updateAllStatsUI();
         profileModal.classList.remove('hidden');
         setTimeout(() => {
             profileModalBackdrop.classList.remove('opacity-0');
