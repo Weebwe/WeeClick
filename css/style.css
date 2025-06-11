@@ -23,20 +23,23 @@ body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color
 .header-btn:hover { background-color: #eef6ff !important; }
 #ton-connect-header .tc-button { background-color: var(--bg-light) !important; color: var(--brand-color) !important; }
 
-/*
-===========================================================
-    ОСЬ ТУТ ГОЛОВНЕ ВИПРАВЛЕННЯ
-===========================================================
-*/
+/* Новий спосіб переключення сторінок */
 .page {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    overflow-y: auto; /* Додаємо скрол до самої сторінки, якщо її контент не вміщується */
+    overflow-y: auto;
+    transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+    visibility: hidden; /* Ховаємо сторінку повністю */
+    opacity: 0;
 }
-/* ========================================================== */
+.page.page-active {
+    visibility: visible; /* Робимо активну сторінку видимою */
+    opacity: 1;
+    z-index: 1; /* Активна сторінка завжди зверху */
+}
 
 /* Стилі для нижньої панелі */
 .bottom-nav { 
@@ -52,8 +55,8 @@ body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color
 }
 .nav-item.active {
     opacity: 1;
-    color: #22c55e; /* Зелений колір */
-    transform: scale(1.1); /* Збільшення */
+    color: #22c55e;
+    transform: scale(1.1);
     font-weight: bold;
 }
 
@@ -93,7 +96,7 @@ body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color
 }
 
 /* Стиль для виконаних завдань */
-#tasks-page {
+#tasks-page .p-4 { /* Target the inner container to apply flex */
     display: flex;
     flex-direction: column;
 }
