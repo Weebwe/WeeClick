@@ -13,18 +13,22 @@
         :root {
             --brand-color: #0094FE;
             --brand-color-hover: #007acd;
-            --green-accent: #34D399; /* Яскравий зелений для краплі */
+            --green-accent: #34D399;
             --text-main: #1a202c;
             --text-secondary: #4a5568;
             --bg-main: #f0f2f5;
             --bg-light: #ffffff;
         }
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-main);
             color: var(--text-main);
-            overflow: hidden;
-            height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         /* --- Екран завантаження --- */
@@ -40,7 +44,7 @@
             50% { transform: scale(1.05); }
         }
         #animated-logo-text {
-            font-size: 2.5rem; /* 40px */
+            font-size: 2.5rem;
             font-weight: 900;
             color: var(--brand-color);
             display: inline-block;
@@ -78,11 +82,13 @@
         #copyright-notice {
             position: absolute;
             bottom: 20px;
+            width: 100%;
+            text-align: center;
             font-size: 0.75rem;
             color: var(--text-secondary);
         }
 
-        /* --- Панелі та навігація --- */
+        /* --- Інші стилі --- */
         .top-panel-btn {
             background-color: var(--brand-color);
             color: white;
@@ -96,6 +102,7 @@
         }
         .bottom-nav {
             box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+            flex-shrink: 0;
         }
         #nav-indicator {
             width: 32px;
@@ -110,11 +117,6 @@
         }
         .nav-item.active i {
             color: var(--brand-color);
-        }
-
-        /* --- Головна сторінка (Клікер) --- */
-        #clicker-button-container {
-            position: relative;
         }
         #clicker-button {
             transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -136,8 +138,6 @@
             from { transform: translateY(0) scale(1); opacity: 1; }
             to { transform: translateY(-100px) scale(1.5); opacity: 0; }
         }
-
-        /* --- Модальне вікно профілю --- */
         #profile-modal-backdrop {
             background-color: rgba(0,0,0,0.5);
             transition: opacity 0.3s ease;
@@ -148,31 +148,25 @@
         .premium-badge {
             background: linear-gradient(135deg, #6B49F7 0%, #D856F2 100%);
         }
-        
-        /* --- Стилі для TON Connect --- */
-        #ton-connect-placeholder .tc-button {
-            background-color: var(--brand-color) !important;
-            color: white !important;
-            width: 100%;
-            border-radius: 12px !important;
-            font-weight: 600 !important;
-        }
-
     </style>
 </head>
-<body class="w-full h-full flex flex-col">
+<body>
 
     <!-- 1. Екран завантаження -->
-    <div id="loader-screen" class="w-full h-full fixed top-0 left-0 z-50 flex flex-col items-center justify-center bg-white">
-        <div class="flex flex-col items-center justify-center">
-            <div id="logo-image-container">
-                <img src="https://weebwe.github.io/WeeClick/logo.png" alt="WeeClick Logo" class="w-32 h-32">
-            </div>
-            <div id="animated-logo-text" class="mt-4">WeeClick</div>
-            <div id="progress-bar-container">
-                <div id="progress-bar"></div>
+    <div id="loader-screen" class="w-full h-full fixed top-0 left-0 z-50 bg-white">
+        <!-- Цей div центрує логотип і прогрес-бар -->
+        <div class="w-full h-full flex flex-col items-center justify-center">
+            <div class="flex flex-col items-center">
+                <div id="logo-image-container">
+                    <img src="https://weebwe.github.io/WeeClick/logo.png" alt="WeeClick Logo" class="w-32 h-32">
+                </div>
+                <div id="animated-logo-text" class="mt-4">WeeClick</div>
+                <div id="progress-bar-container">
+                    <div id="progress-bar"></div>
+                </div>
             </div>
         </div>
+        <!-- Корпоративні права, позиціоновані окремо -->
         <p id="copyright-notice">&copy; 2024 WeeClick. Всі права захищено.</p>
     </div>
     
@@ -186,7 +180,6 @@
     <!-- 3. Основний додаток -->
     <div id="main-app" class="w-full h-full flex-col hidden">
         
-        <!-- Верхня панель -->
         <header class="w-full bg-white shadow-md p-3 flex justify-between items-center z-20 flex-shrink-0">
             <button id="profile-btn" class="top-panel-btn font-semibold py-2 px-4 rounded-xl flex items-center">
                 <i class="fas fa-user mr-2"></i> Профіль
@@ -194,7 +187,6 @@
             <div id="ton-connect-header" class="flex-shrink-0"></div>
         </header>
         
-        <!-- Панель ресурсів -->
         <div class="w-full bg-gray-100 p-2 flex justify-around items-center z-10 shadow-inner flex-shrink-0">
             <div class="flex items-center space-x-2 font-bold text-gray-700">
                 <img src="https://weebwe.github.io/WeeClick/logo.png" class="w-6 h-6"/>
@@ -210,16 +202,13 @@
             </div>
         </div>
 
-        <!-- Основний контент (сторінки) -->
         <main class="flex-grow w-full overflow-y-auto relative">
-            
             <section id="home-page" class="page w-full h-full flex flex-col items-center justify-center p-4">
                  <div id="clicker-button-container" class="relative flex items-center justify-center">
                     <img id="clicker-button" src="https://weebwe.github.io/WeeClick/logo.png" alt="Click Me" class="w-48 h-48 md:w-64 md:h-64 rounded-full cursor-pointer select-none">
                  </div>
                  <p class="mt-6 text-gray-500 font-medium">Натискай, щоб заробити!</p>
             </section>
-            
             <section id="tasks-page" class="page hidden p-4 space-y-3">
                 <h1 class="text-2xl font-bold mb-4">Завдання</h1>
                 <div class="bg-white p-4 rounded-xl shadow">
@@ -233,7 +222,6 @@
                     <button class="mt-2 top-panel-btn w-full py-2 rounded-lg">Запросити</button>
                 </div>
             </section>
-            
             <section id="shop-page" class="page hidden p-4">
                 <h1 class="text-2xl font-bold mb-4">Магазин</h1>
                 <div class="text-center text-gray-500 mt-16">
@@ -241,7 +229,6 @@
                     <p>Скоро тут з'являться круті покращення!</p>
                 </div>
             </section>
-
             <section id="leaders-page" class="page hidden p-4">
                  <h1 class="text-2xl font-bold mb-4">Таблиця лідерів</h1>
                  <div class="text-center text-gray-500 mt-16">
@@ -251,25 +238,12 @@
             </section>
         </main>
 
-        <!-- Нижня навігація -->
-        <nav class="bottom-nav w-full bg-white p-2 flex justify-around items-center relative z-20 flex-shrink-0">
+        <nav class="bottom-nav w-full bg-white p-2 flex justify-around items-center relative z-20">
             <div id="nav-indicator"></div>
-            <button data-page="home-page" class="nav-item active flex-1 flex flex-col items-center justify-center text-gray-500 z-10 py-2">
-                <i class="fas fa-home text-2xl"></i>
-                <span class="text-xs mt-1">Головна</span>
-            </button>
-            <button data-page="tasks-page" class="nav-item flex-1 flex flex-col items-center justify-center text-gray-500 z-10 py-2">
-                <i class="fas fa-tasks text-2xl"></i>
-                <span class="text-xs mt-1">Завдання</span>
-            </button>
-            <button data-page="shop-page" class="nav-item flex-1 flex flex-col items-center justify-center text-gray-500 z-10 py-2">
-                <i class="fas fa-store text-2xl"></i>
-                 <span class="text-xs mt-1">Магазин</span>
-            </button>
-            <button data-page="leaders-page" class="nav-item flex-1 flex flex-col items-center justify-center text-gray-500 z-10 py-2">
-                <i class="fas fa-trophy text-2xl"></i>
-                <span class="text-xs mt-1">Лідери</span>
-            </button>
+            <button data-page="home-page" class="nav-item active flex-1 flex flex-col items-center justify-center text-gray-500 z-10 py-2"><i class="fas fa-home text-2xl"></i><span class="text-xs mt-1">Головна</span></button>
+            <button data-page="tasks-page" class="nav-item flex-1 flex flex-col items-center justify-center text-gray-500 z-10 py-2"><i class="fas fa-tasks text-2xl"></i><span class="text-xs mt-1">Завдання</span></button>
+            <button data-page="shop-page" class="nav-item flex-1 flex flex-col items-center justify-center text-gray-500 z-10 py-2"><i class="fas fa-store text-2xl"></i><span class="text-xs mt-1">Магазин</span></button>
+            <button data-page="leaders-page" class="nav-item flex-1 flex flex-col items-center justify-center text-gray-500 z-10 py-2"><i class="fas fa-trophy text-2xl"></i><span class="text-xs mt-1">Лідери</span></button>
         </nav>
     </div>
 
@@ -290,21 +264,14 @@
             </div>
             <div>
                 <div class="space-y-2 text-sm bg-gray-50 p-3 rounded-lg">
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">User ID:</span>
-                        <span id="user-id" class="font-mono bg-gray-200 px-2 py-0.5 rounded"></span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">Статус:</span>
-                        <span id="user-premium" class="font-semibold"></span>
-                    </div>
+                    <div class="flex justify-between"><span class="text-gray-500">User ID:</span><span id="user-id" class="font-mono bg-gray-200 px-2 py-0.5 rounded"></span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Статус:</span><span id="user-premium" class="font-semibold"></span></div>
                 </div>
             </div>
-            <div id="wallet-info" class="pt-4 border-t border-gray-100 hidden">
+            <div id="wallet-info" class="pt-4 border-t border-gray-100">
                  <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Підключений гаманець</h2>
-                 <p id="wallet-address" class="text-sm font-mono text-center bg-blue-50 text-blue-700 p-2 rounded-lg break-all"></p>
+                 <p id="wallet-address" class="text-sm font-mono text-center bg-gray-100 text-gray-600 p-2 rounded-lg break-all"></p>
             </div>
-             <div id="ton-connect-placeholder" class="pt-2"></div>
         </div>
     </div>
 
@@ -325,8 +292,6 @@
         const progressBar = document.getElementById('progress-bar');
         const botBlockScreen = document.getElementById('bot-block-screen');
         const mainApp = document.getElementById('main-app');
-        
-        // ... (інші елементи DOM)
         const scoreDisplay = document.getElementById('score-display');
         const score2Display = document.getElementById('score2-display');
         const livesDisplay = document.getElementById('lives-display');
@@ -345,7 +310,6 @@
         const userUsername = document.getElementById('user-username');
         const userId = document.getElementById('user-id');
         const userPremium = document.getElementById('user-premium');
-        const walletInfoDiv = document.getElementById('wallet-info');
         const walletAddressP = document.getElementById('wallet-address');
 
         // --- Ігровий стан ---
@@ -356,17 +320,17 @@
             let progress = 0;
             const interval = setInterval(() => {
                 progress += 1;
-                progressBar.style.width = progress + '%';
+                if(progressBar) {
+                    progressBar.style.width = progress + '%';
+                }
                 if (progress >= 100) {
                     clearInterval(interval);
-                    
-                    // Завершення завантаження
                     loaderScreen.style.opacity = '0';
                     mainApp.classList.remove('hidden');
                     mainApp.classList.add('flex');
-                    setTimeout(() => loaderScreen.classList.add('hidden'), 500);
+                    setTimeout(() => loaderScreen.style.display = 'none', 500);
                 }
-            }, 25); // 100 * 25ms = 2.5 секунди
+            }, 25);
         }
 
         // --- Основна логіка ---
@@ -374,7 +338,7 @@
             const user = tg.initDataUnsafe?.user;
             
             if (user?.is_bot) {
-                loaderScreen.classList.add('hidden');
+                loaderScreen.style.display = 'none';
                 botBlockScreen.classList.remove('hidden');
                 botBlockScreen.classList.add('flex');
                 return;
@@ -386,7 +350,6 @@
             setupEventListeners();
             updateNavIndicator(0);
             
-            // Запускаємо симуляцію завантаження
             startLoadingSimulation();
         }
 
@@ -396,11 +359,9 @@
                 userUsername.textContent = user.username ? `@${user.username}` : 'Нікнейм не вказано';
                 userId.textContent = user.id;
                 if (user.photo_url) userPhoto.src = user.photo_url;
-                if (user.is_premium) {
-                    userPremium.innerHTML = `<span class="premium-badge text-white text-xs font-bold px-2 py-1 rounded-full">Premium</span>`;
-                } else {
-                    userPremium.textContent = 'Стандарт';
-                }
+                userPremium.innerHTML = user.is_premium 
+                    ? `<span class="premium-badge text-white text-xs font-bold px-2 py-1 rounded-full">Premium</span>`
+                    : 'Стандарт';
             } else {
                 userName.textContent = "WeeClick User";
                 userUsername.textContent = "@testuser";
@@ -449,8 +410,36 @@
 
         function showPage(pageId) {
             pages.forEach(page => page.classList.add('hidden'));
-            document.getElementById(pageId).classList.remove('hidden');
+            document.getElementById(pageId)?.classList.remove('hidden');
         }
 
         function updateActiveNavItem(activeItem) {
-             navItems.forEach(item => item.c
+             navItems.forEach(item => item.classList.remove('active'));
+             activeItem.classList.add('active');
+        }
+        
+        function updateNavIndicator(activeIndex) {
+            if (navItems.length > 0) {
+                const itemWidth = navItems[0].offsetWidth;
+                const newPosition = activeIndex * itemWidth + (itemWidth / 2) - (navIndicator.offsetWidth / 2);
+                navIndicator.style.transform = `translateX(${newPosition}px)`;
+            }
+        }
+
+        function showProfileModal() {
+            profileModal.classList.remove('hidden');
+            setTimeout(() => {
+                profileModalBackdrop.classList.remove('opacity-0');
+                profileModalContent.classList.remove('scale-95', 'opacity-0');
+            }, 10);
+        }
+        
+        function hideProfileModal() {
+            profileModalBackdrop.classList.add('opacity-0');
+            profileModalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => profileModal.classList.add('hidden'), 300);
+        }
+
+        function updateWalletUI(wallet) {
+            if (wallet) {
+  
