@@ -1,14 +1,11 @@
-// Цей код запускається, коли вся структура сторінки (HTML) готова до роботи.
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- Ініціалізація Telegram та TON Connect ---
-    // Перевіряємо, чи існують об'єкти, перш ніж їх використовувати
     const tg = window.Telegram?.WebApp;
     const TON_CONNECT_UI = window.TON_CONNECT_UI;
 
     if (!tg || !TON_CONNECT_UI) {
         console.error("Telegram або TON Connect UI скрипти не завантажились!");
-        // Можна показати повідомлення про помилку користувачу
         document.body.innerHTML = 'Помилка завантаження. Спробуйте оновити сторінку.';
         return;
     }
@@ -17,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.expand();
 
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-        manifestUrl: 'https://weebwe.github.io/WeeClick/manifest.json', // Замініть на ваш URL маніфесту
+        manifestUrl: 'https://weebwe.github.io/WeeClick/manifest.json',
         buttonRootId: 'ton-connect-header'
     });
 
@@ -42,18 +39,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const userPhoto = document.getElementById('user-photo');
     const userName = document.getElementById('user-name');
     const userUsername = document.getElementById('user-username');
-    const userId = document.getElementById('user-id');
-    const userPremium = document.getElementById('user-premium');
     const walletAddressP = document.getElementById('wallet-address');
+    const profileScoreDisplay = document.getElementById('profile-score-display');
+    const profileScore2Display = document.getElementById('profile-score2-display');
+    const toggleMusicBtn = document.getElementById('toggle-music-btn');
+    const toggleEffectsBtn = document.getElementById('toggle-effects-btn');
+    const tasksContainer = document.getElementById('tasks-page');
     const verifyGroupTaskBtn = document.getElementById('verify-group-task');
 
-    // --- Ігровий стан та звуки ---
+    // --- Ігровий стан, налаштування та звуки ---
     let score = 0;
     let score2 = 10;
     let lives = 3;
-    let isMusicPlaying = false; 
+    
+    let isMusicEnabled = JSON.parse(localStorage.getItem('isMusicEnabled')) ?? true;
+    let areEffectsEnabled = JSON.parse(localStorage.getItem('areEffectsEnabled')) ?? true;
+    
+    let isMusicUnmuted = false; 
 
-    // ВАЖЛИВО: Переконайтесь, що файли `click.mp3` та `background.mp3` існують у папці `sounds`
     const clickSound = new Audio('sounds/click.mp3');
     const backgroundMusic = new Audio('sounds/background.mp3');
     backgroundMusic.loop = true;
@@ -74,12 +77,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         populateProfileData(user);
         updateWalletUI(tonConnectUI.wallet);
-        updateStats();
+        updateAllStatsUI();
+        updateSettingsUI();
         setupEventListeners();
         startLoadingSimulation();
     }
 
     function startLoadingSimulation() {
+        if (isMusicEnabled) {
+            backgroundMusic.muted = true;
+            backgroundMusic.play().catch(e => console.error("Autoplay muted failed:", e));
+        }
+        
         let progress = 0;
         const interval = setInterval(() => {
             progress += 1;
@@ -91,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     mainApp.classList.remove('hidden');
                     mainApp.classList.add('flex');
                 }
-                // Затримка потрібна, щоб елементи встигли відобразитись перед розрахунком позиції індикатора
                 setTimeout(() => {
                     const initialActiveItem = document.querySelector('.nav-item.active');
                     if (initialActiveItem) updateNavIndicator(initialActiveItem);
@@ -100,28 +108,29 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 25);
     }
-
+    
     function populateProfileData(user) {
         if (!user) return;
         userName.textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Guest';
         userUsername.textContent = user.username ? `@${user.username}` : 'Нікнейм не вказано';
-        userId.textContent = user.id;
         if (user.photo_url) userPhoto.src = user.photo_url;
-        userPremium.innerHTML = user.is_premium ? `<span class="premium-badge text-white text-xs font-bold px-2 py-1 rounded-full">Premium</span>` : 'Стандарт';
     }
 
     function setupEventListeners() {
         clickerButton.addEventListener('click', (event) => {
-            if (!isMusicPlaying) {
-                backgroundMusic.play().catch(e => console.error("Не вдалося відтворити фонову музику:", e));
-                isMusicPlaying = true;
+            if (isMusicEnabled && !isMusicUnmuted) {
+                backgroundMusic.muted = false;
+                isMusicUnmuted = true;
             }
             score++;
-            updateStats();
+            updateAllStatsUI();
             animateClick(event);
         });
-
+        
         verifyGroupTaskBtn.addEventListener('click', handleGroupVerification);
+        
+        toggleMusicBtn.addEventListener('click', toggleMusic);
+        toggleEffectsBtn.addEventListener('click', toggleEffects);
 
         navItems.forEach(item => {
             item.addEventListener('click', () => {
@@ -141,28 +150,62 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function handleGroupVerification() {
-        score += 1500;
-        updateStats();
-        tg.showAlert('Нагороду в 1,500 монет зараховано!');
-        verifyGroupTaskBtn.disabled = true;
-        verifyGroupTaskBtn.textContent = 'Виконано';
-        const joinButton = verifyGroupTaskBtn.previousElementSibling;
-        if(joinButton) {
-            joinButton.style.pointerEvents = 'none';
-            joinButton.style.opacity = '0.5';
+    function toggleMusic() {
+        isMusicEnabled = !isMusicEnabled;
+        localStorage.setItem('isMusicEnabled', JSON.stringify(isMusicEnabled));
+        
+        if (isMusicEnabled) {
+            backgroundMusic.play().catch(e => console.error("Could not play music:", e));
+        } else {
+            backgroundMusic.pause();
+        }
+        updateSettingsUI();
+    }
+
+    function toggleEffects() {
+        areEffectsEnabled = !areEffectsEnabled;
+        localStorage.setItem('areEffectsEnabled', JSON.stringify(areEffectsEnabled));
+        updateSettingsUI();
+    }
+
+    function updateSettingsUI() {
+        const musicIcon = toggleMusicBtn.querySelector('i');
+        if (isMusicEnabled) {
+            toggleMusicBtn.classList.add('active');
+            musicIcon.className = 'fas fa-volume-up';
+        } else {
+            toggleMusicBtn.classList.remove('active');
+            musicIcon.className = 'fas fa-volume-mute';
+        }
+        
+        const effectsIcon = toggleEffectsBtn.querySelector('i');
+        if (areEffectsEnabled) {
+            toggleEffectsBtn.classList.add('active');
+            effectsIcon.className = 'fas fa-star';
+        } else {
+            toggleEffectsBtn.classList.remove('active');
+            effectsIcon.className = 'fas fa-star-half-alt';
         }
     }
-    
-    function updateStats() {
-        scoreDisplay.textContent = score.toLocaleString('uk-UA');
-        score2Display.textContent = score2.toLocaleString('uk-UA');
+
+    function updateAllStatsUI() {
+        const formattedScore = score.toLocaleString('uk-UA');
+        const formattedScore2 = score2.toLocaleString('uk-UA');
+
+        scoreDisplay.textContent = formattedScore;
+        score2Display.textContent = formattedScore2;
         livesDisplay.textContent = lives;
+        
+        if (profileScoreDisplay) profileScoreDisplay.textContent = formattedScore;
+        if (profileScore2Display) profileScore2Display.textContent = formattedScore2;
     }
 
     function animateClick(e) {
-        clickSound.currentTime = 0;
-        clickSound.play().catch(e => console.error("Не вдалося відтворити звук кліку:", e));
+        if (areEffectsEnabled) {
+            clickSound.currentTime = 0;
+            clickSound.play().catch(e => console.error("Не вдалося відтворити звук кліку:", e));
+        }
+        
         const animation = document.createElement('span');
         animation.className = 'click-animation';
         animation.textContent = '+1';
@@ -174,7 +217,28 @@ document.addEventListener('DOMContentLoaded', () => {
         clickerContainer.appendChild(animation);
         setTimeout(() => animation.remove(), 1000);
     }
+    
+    function handleGroupVerification(event) {
+        const button = event.currentTarget;
+        const taskCard = button.closest('.task-card');
 
+        if (!taskCard || taskCard.classList.contains('completed')) return;
+
+        score += 1500;
+        updateAllStatsUI();
+        tg.showAlert('Нагороду в 1,500 монет зараховано!');
+        
+        taskCard.classList.add('completed');
+        button.disabled = true;
+        button.textContent = 'Виконано';
+        const joinButton = button.previousElementSibling;
+        if (joinButton) {
+            joinButton.style.pointerEvents = 'none';
+        }
+        
+        tasksContainer.appendChild(taskCard);
+    }
+    
     function showPage(pageId) {
         pages.forEach(page => page.classList.add('hidden'));
         document.getElementById(pageId)?.classList.remove('hidden');
@@ -187,14 +251,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateNavIndicator(activeItem) {
         if (!activeItem || !navIndicator) return;
-        const navRect = activeItem.parentElement.getBoundingClientRect();
-        const itemRect = activeItem.getBoundingClientRect();
-        const centerPosition = itemRect.left - navRect.left + itemRect.width / 2;
-        const newPosition = centerPosition - navIndicator.offsetWidth / 2;
+        const newWidth = activeItem.offsetWidth;
+        const newPosition = activeItem.offsetLeft;
+        navIndicator.style.width = `${newWidth}px`;
         navIndicator.style.transform = `translateX(${newPosition}px)`;
     }
 
     function showProfileModal() {
+        updateAllStatsUI(); // Оновлюємо баланс при кожному відкритті профілю
         profileModal.classList.remove('hidden');
         setTimeout(() => {
             profileModalBackdrop.classList.remove('opacity-0');
@@ -220,7 +284,6 @@ document.addEventListener('DOMContentLoaded', () => {
             walletAddressP.classList.add('text-gray-600', 'bg-gray-100');
         }
     }
-
-    // Запускаємо додаток
+    
     initializeApp();
 });
