@@ -2,19 +2,18 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>WeeClick Profile</title>
-    <!-- Підключення скрипта Telegram Web App -->
+    <!-- Підключення скриптів Telegram та TonConnect -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Підключення бібліотеки TonConnect UI -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 
     <style>
         :root {
             --corporate-blue: #0094FE;
             --corporate-white: #fff;
-            --dark-text: #333;
-            --light-text: #777;
+            --dark-text: #2c3e50;
+            --light-text: #888;
             --success-green: #28a745;
             --border-grey: #e8e8e8;
             --background-grey: #f4f4f8;
@@ -26,20 +25,50 @@
             margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background-color: var(--background-grey);
-            overflow-x: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            overflow: hidden; /* Забороняємо прокрутку під час завантаження */
+            color: var(--dark-text);
         }
         
-        #user-data-screen {
-            display: flex;
-            flex-direction: column; align-items: center; justify-content: center;
-            width: 100%; padding: 20px; box-sizing: border-box; 
-            animation: fadeInScreen 0.7s ease-out forwards;
+        /* --- ЕКРАН ЗАВАНТАЖЕННЯ --- */
+        #loading-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background-color: var(--corporate-white); z-index: 100;
+            transition: opacity 0.6s ease-out;
         }
-        @keyframes fadeInScreen { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .weeclick-logo-wrapper {
+            width: 150px; height: 150px; margin-bottom: 30px; position: relative;
+            display: flex; justify-content: center; align-items: center;
+            border-radius: 50%; background-color: var(--corporate-white);
+            border: 8px solid var(--corporate-blue); perspective: 500px; transform-style: preserve-3d;
+            animation: weeclickRotate3D 4s linear infinite;
+        }
+        .weeclick-logo-text {
+            font-size: 3.5em; font-weight: bold; color: var(--corporate-blue);
+            transform-style: preserve-3d; animation: weeclickTextRotate3D 4s linear infinite;
+        }
+        @keyframes weeclickRotate3D { 0% { transform: rotateY(0deg) rotateX(-10deg); } 100% { transform: rotateY(360deg) rotateX(-10deg); } }
+        @keyframes weeclickTextRotate3D { 0% { transform: rotateY(0deg) translateZ(8px); } 100% { transform: rotateY(-360deg) translateZ(8px); } }
+        .progress-container {
+            width: 250px; height: 12px; background-color: #e0e0e0;
+            border-radius: 6px; overflow: hidden;
+        }
+        #progress-bar {
+            width: 0%; height: 100%; background: var(--corporate-blue);
+            transition: width 0.1s linear; border-radius: 6px;
+        }
+        .loading-footer {
+            position: absolute; bottom: 20px; font-size: 0.9em; color: #aaa;
+        }
+
+        /* --- ОСНОВНИЙ ЕКРАН ПРОФІЛЮ --- */
+        #user-data-screen {
+            display: none; flex-direction: column; align-items: center; justify-content: flex-start;
+            width: 100%; min-height: 100vh; padding: 25px; box-sizing: border-box; 
+            animation: fadeInScreen 0.7s ease-out forwards;
+            overflow-y: auto;
+        }
+        @keyframes fadeInScreen { from { opacity: 0; } to { opacity: 1; } }
         
         .user-card {
             background: var(--corporate-white); padding: 25px; border-radius: 20px;
@@ -53,33 +82,47 @@
             box-shadow: 0 4px 15px var(--shadow-medium); object-fit: cover; background-color: #eee;
         }
 
-        #user-fullname { color: var(--dark-text); font-size: 1.4em; font-weight: 600; margin: 0; }
-        #user-username { color: var(--light-text); font-size: 1em; margin-bottom: 20px; }
+        #user-fullname { font-size: 1.6em; font-weight: 600; margin: 0; }
+        #user-username { color: var(--light-text); font-size: 1.1em; margin-bottom: 25px; }
 
         .details-grid {
-            text-align: left; margin-bottom: 25px;
-            display: grid; grid-template-columns: 1fr;
-            gap: 10px;
+            text-align: left; margin-bottom: 25px; display: grid; grid-template-columns: 1fr; gap: 12px;
         }
         .details-grid p {
-            font-size: 1em; margin: 0; color: var(--dark-text);
-            background-color: #f9f9f9; padding: 10px; border-radius: 8px;
-            display: flex; justify-content: space-between; align-items: center;
+            font-size: 1em; margin: 0; background-color: #f9f9f9; padding: 12px;
+            border-radius: 10px; display: flex; justify-content: space-between; align-items: center;
         }
-        .details-grid p strong { color: var(--corporate-blue); }
+        .details-grid p strong { color: var(--dark-text); font-weight: 500; }
+        .details-grid p span { color: var(--light-text); font-weight: 500; text-align: right; }
+        .details-grid p span.bool-true { color: var(--success-green); }
+        .details-grid p span.bool-false { color: #f39c12; }
 
         .wallet-section {
-            margin-top: 20px; padding-top: 20px;
-            border-top: 1px solid var(--border-grey);
+            margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-grey);
         }
-        
-        /* Цей контейнер буде містити кнопку, яку згенерує TonConnect UI */
-        #ton-connect-button-container {
-            margin-top: 15px;
+        #ton-connect-button-container { margin-top: 15px; }
+        .ton-connect-button__placeholder {
+            background-color: #f0f0f0; color: #aaa; text-align: center;
+            padding: 20px; border-radius: 12px; font-style: italic;
         }
+
     </style>
 </head>
 <body>
+    <!-- Екран №1: Завантаження -->
+    <div id="loading-screen">
+        <div class="weeclick-logo-wrapper">
+            <span class="weeclick-logo-text">WEE</span>
+        </div>
+        <div class="progress-container">
+            <div id="progress-bar"></div>
+        </div>
+        <footer class="loading-footer">
+            © 2024-2025 Weebwe LLC. Всі права захищені.
+        </footer>
+    </div>
+    
+    <!-- Екран №2: Профіль користувача -->
     <div id="user-data-screen">
         <div class="user-card">
             <div class="avatar-container">
@@ -90,20 +133,46 @@
             <p id="user-username"></p>
 
             <div class="details-grid">
-                <p><strong>ID Користувача:</strong> <span id="user-id"></span></p>
+                <p><strong>ID:</strong> <span id="user-id"></span></p>
                 <p><strong>Гаманець:</strong> <span id="wallet-address">Не підключено</span></p>
+                <p><strong>Telegram Premium:</strong> <span id="user-is-premium"></span></p>
+                <p><strong>Мова:</strong> <span id="user-language"></span></p>
+                <p><strong>Дозволено писати в ПП:</strong> <span id="user-allows-pm"></span></p>
+                <p><strong>Це бот:</strong> <span id="user-is-bot"></span></p>
             </div>
 
             <div class="wallet-section">
-                <!-- Сюди бібліотека TonConnect UI автоматично вставить свою кнопку -->
-                <div id="ton-connect-button-container"></div>
+                <div id="ton-connect-button-container">
+                    <div class="ton-connect-button__placeholder">Завантаження кнопки...</div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // --- 1. ІНІЦІАЛІЗАЦІЯ TELEGRAM ТА ІНТЕРФЕЙСУ ---
+            // --- 1. ЛОГІКА ЗАВАНТАЖЕННЯ ---
+            const loadingScreen = document.getElementById('loading-screen');
+            const progressBar = document.getElementById('progress-bar');
+            const userDataScreen = document.getElementById('user-data-screen');
+            const loadingDuration = 2000; // 2 секунди
+            let progress = 0;
+
+            const interval = setInterval(() => {
+                progress++;
+                progressBar.style.width = progress + '%';
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    loadingScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                        document.body.style.overflow = 'auto'; // Повертаємо прокрутку
+                        userDataScreen.style.display = 'flex';
+                    }, 600);
+                }
+            }, loadingDuration / 100);
+
+            // --- 2. ІНІЦІАЛІЗАЦІЯ TELEGRAM ТА ІНТЕРФЕЙСУ ---
             const tg = window.Telegram.WebApp;
             tg.ready();
             displayUserData();
@@ -113,48 +182,46 @@
                     const user = tg.initDataUnsafe.user;
                     if (!user) throw new Error("Not in Telegram environment");
 
-                    const userPhoto = document.getElementById('user-photo');
-                    userPhoto.src = user.photo_url || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2NkY2RjZCI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgM2MxLjY2IDAgMyAxLjM0IDMgMyAwIDEuNjYtMS4zNCAzLTMgMy0xLjY2IDAtMy0xLjM0LTMtMyAwLTEuNjYgMS4zNC0zIDMtM3ptMCAxNC4yYy0yLjUgMC00LjcxLTEuMjgtNi4yMi0zLjIyLjc4LTEuNDggMy4wNi0yLjQ4IDUuOTgtMi40OCAxLjQxIDAgMi44MS4zMyA0LjA3LjkxQzE3LjU5IDE1IDE4IDE1Ljg5IDE4IDE3YzAgMS4xLS45IDItMiAyaC00eiIvPjwvc3ZnPg==";
+                    const getElement = (id) => document.getElementById(id);
+
+                    getElement('user-photo').src = user.photo_url || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2NkY2RjZCI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgM2MxLjY2IDAgMyAxLjM0IDMgMyAwIDEuNjYtMS4zNCAzLTMgMy0xLjY2IDAtMy0xLjM0LTMtMyAwLTEuNjYgMS4zNC0zIDMtM3ptMCAxNC4yYy0yLjUgMC00LjcxLTEuMjgtNi4yMi0zLjIyLjc4LTEuNDggMy4wNi0yLjQ4IDUuOTgtMi40OCAxLjQxIDAgMi44MS4zMyA0LjA3LjkxQzE3LjU5IDE1IDE4IDE1Ljg5IDE4IDE3YzAgMS4xLS45IDItMiAyaC00eiIvPjwvc3ZnPg==";
+                    getElement('user-fullname').textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+                    getElement('user-username').textContent = user.username ? `@${user.username}` : 'Нікнейм не вказано';
+                    getElement('user-id').textContent = user.id;
+                    getElement('user-language').textContent = (user.language_code || 'n/a').toUpperCase();
                     
-                    document.getElementById('user-fullname').textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim();
-                    document.getElementById('user-username').textContent = user.username ? `@${user.username}` : 'No username';
-                    document.getElementById('user-id').textContent = user.id;
+                    const setBoolValue = (id, value) => {
+                        const el = getElement(id);
+                        el.textContent = value ? 'Так' : 'Ні';
+                        el.className = value ? 'bool-true' : 'bool-false';
+                    };
+                    
+                    setBoolValue('user-is-premium', user.is_premium);
+                    setBoolValue('user-allows-pm', user.allows_write_to_pm);
+                    setBoolValue('user-is-bot', user.is_bot);
 
                 } catch (error) {
-                    console.warn('Test Mode (could not get Telegram data):', error);
-                    document.getElementById('user-fullname').textContent = 'Test User';
+                    console.warn('Тестовий режим (не вдалося отримати дані з Telegram):', error);
+                    // Заповнення тестовими даними
+                    document.getElementById('user-fullname').textContent = 'Тестовий Користувач';
                     document.getElementById('user-username').textContent = '@test_user';
-                    document.getElementById('user-id').textContent = '123456789';
                 }
             }
 
-            // --- 2. КОНФІГУРАЦІЯ TONCONNECT UI ---
-            
-            // ЗМІНА: Встановлено реальний шлях до вашого manifest.json
-            const manifestUrl = 'https://weebwe.github.io/WeeClick/manifest.json'; 
-            
+            // --- 3. КОНФІГУРАЦІЯ TONCONNECT UI ---
+            const manifestUrl = 'https://weebwe.github.io/WeeClick/manifest.json';
             const tonConnectUI = new TonConnectUI.TonConnectUI({
                 manifestUrl: manifestUrl,
-                buttonRootId: 'ton-connect-button-container' // Вказуємо, куди вставити кнопку
+                buttonRootId: 'ton-connect-button-container'
             });
 
             const walletAddressElement = document.getElementById('wallet-address');
-
-            // --- 3. ПІДПИСКА НА ЗМІНИ СТАТУСУ ГАМАНЦЯ ---
             tonConnectUI.onStatusChange(walletInfo => {
                 if (walletInfo) {
-                    // Гаманець підключено
-                    const address = TonConnectUI.toUserFriendlyAddress(walletInfo.account.address);
-                    const userFriendlyAddress = `${address.slice(0, 4)}...${address.slice(-4)}`;
-                    
-                    walletAddressElement.textContent = userFriendlyAddress;
-                    walletAddressElement.style.fontWeight = 'bold';
-                    walletAddressElement.style.color = 'var(--success-green)';
+                    const address = TonConnectUI.toUserFriendlyAddress(walletInfo.account.address, walletInfo.account.chain === TonConnectUI.CHAIN.TESTNET);
+                    walletAddressElement.textContent = `${address.slice(0, 4)}...${address.slice(-4)}`;
                 } else {
-                    // Гаманець відключено
                     walletAddressElement.textContent = 'Не підключено';
-                    walletAddressElement.style.fontWeight = 'normal';
-                    walletAddressElement.style.color = 'var(--light-text)';
                 }
             });
         });
