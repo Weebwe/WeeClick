@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -441,4 +442,32 @@
         
         function hideProfileModal() {
             profileModalBackdrop.classList.add('opacity-0');
-   
+            profileModalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => profileModal.classList.add('hidden'), 300);
+        }
+
+        function updateWalletUI(wallet) {
+            if (wallet) {
+                const friendlyAddress = TON_CONNECT_UI.toUserFriendlyAddress(wallet.account.address, wallet.account.chain === '-3');
+                walletAddressP.textContent = friendlyAddress;
+                walletAddressP.classList.remove('text-gray-600', 'bg-gray-100');
+                walletAddressP.classList.add('text-blue-700', 'bg-blue-50');
+            } else {
+                walletAddressP.textContent = 'Гаманець не підключено';
+                walletAddressP.classList.remove('text-blue-700', 'bg-blue-50');
+                walletAddressP.classList.add('text-gray-600', 'bg-gray-100');
+            }
+        }
+        
+        window.addEventListener('load', initializeApp);
+        window.addEventListener('resize', () => {
+            const activeItem = document.querySelector('.nav-item.active');
+            if (activeItem) {
+                const activeIndex = Array.from(navItems).indexOf(activeItem);
+                updateNavIndicator(activeIndex);
+            }
+        });
+
+    </script>
+</body>
+</html>
