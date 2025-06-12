@@ -14,12 +14,47 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div id="loader-screen" class="w-full h-full fixed top-0 left-0 z-50 bg-white flex flex-col items-center justify-center"> <div class="flex flex-col items-center"> <div id="logo-image-container"> <img src="https://weebwe.github.io/WeeClick/logo.png" alt="WeeClick Logo" class="w-32 h-32"> </div> <div id="animated-logo-text" class="mt-4">WeeClick</div> <div id="progress-bar-container"> <div id="progress-bar"></div> </div> </div> <p id="copyright-notice">&copy; <span id="copyright-year"></span> WeeClick. Всі права захищено.</p> </div>
-    <div id="bot-block-screen" class="w-full h-full fixed top-0 left-0 z-40 flex-col items-center justify-center bg-white hidden"> <i class="fas fa-robot text-6xl text-red-500 mb-4"></i> <h1 class="text-2xl font-bold text-gray-800">Доступ заборонено</h1> <p class="text-gray-600 mt-2">На жаль, ботам вхід не дозволено.</p> </div>
+    <div id="loader-screen" class="w-full h-full fixed top-0 left-0 z-50 bg-white flex flex-col items-center justify-center">
+        <div class="flex flex-col items-center">
+            <div id="logo-image-container">
+                <img src="https://weebwe.github.io/WeeClick/logo.png" alt="WeeClick Logo" class="w-32 h-32">
+            </div>
+            <div id="animated-logo-text" class="mt-4">WeeClick</div>
+            <div id="progress-bar-container">
+                <div id="progress-bar"></div>
+            </div>
+        </div>
+        <p id="copyright-notice">&copy; <span id="copyright-year">2025</span> WeeClick. Всі права захищено.</p>
+    </div>
+
+    <div id="bot-block-screen" class="w-full h-full fixed top-0 left-0 z-40 flex-col items-center justify-center bg-white hidden">
+        <i class="fas fa-robot text-6xl text-red-500 mb-4"></i>
+        <h1 class="text-2xl font-bold text-gray-800">Доступ заборонено</h1>
+        <p class="text-gray-600 mt-2">На жаль, ботам вхід не дозволено.</p>
+    </div>
     
     <div id="main-app" class="w-full h-full flex-col hidden">
-        <header class="w-full bg-[#0094FE] shadow-md p-3 flex justify-between items-center z-20 flex-shrink-0"> <button id="profile-btn" class="header-btn font-semibold py-2 px-4 rounded-xl flex items-center"> <i class="fas fa-user mr-2"></i> Профіль </button> <div id="ton-connect-header" class="flex-shrink-0"></div> </header>
-        <div class="w-full bg-[#0094FE] text-white p-2 flex justify-around items-center z-10 shadow-inner flex-shrink-0"> <div class="flex items-center space-x-2 font-bold"> <img src="https://weebwe.github.io/WeeClick/logo.png" class="w-6 h-6"/> <span id="score-display">0</span> </div> <div class="flex items-center space-x-2 font-bold"> <img src="https://weebwe.github.io/wee.png" class="w-6 h-6"/> <span id="score2-display">0</span> </div> <div class="flex items-center space-x-2 font-bold"> <i class="fas fa-heart text-xl text-red-400"></i> <span id="lives-display">3</span> </div> </div>
+        <header class="w-full p-3 flex justify-between items-center z-20 flex-shrink-0">
+            <button id="profile-btn" class="header-btn font-semibold py-2 px-4 rounded-xl flex items-center">
+                <i class="fas fa-user mr-2"></i> Профіль
+            </button>
+            <div id="ton-connect-header" class="flex-shrink-0"></div>
+        </header>
+
+        <div class="w-full bg-[#0094FE] text-white p-2 flex justify-around items-center z-10 shadow-inner flex-shrink-0">
+            <div class="flex items-center space-x-2 font-bold">
+                <img src="https://weebwe.github.io/WeeClick/logo.png" class="w-6 h-6"/>
+                <span id="score-display">0</span>
+            </div>
+            <div class="flex items-center space-x-2 font-bold">
+                <img src="https://weebwe.github.io/wee.png" class="w-6 h-6"/>
+                <span id="score2-display">0</span>
+            </div>
+            <div class="flex items-center space-x-2 font-bold">
+                <i class="fas fa-heart text-xl text-red-400"></i>
+                <span id="lives-display">3</span>
+            </div>
+        </div>
 
         <main class="flex-grow w-full overflow-y-auto relative bg-white">
             <section id="home-page" class="page">
@@ -32,42 +67,111 @@
             </section>
             
             <section id="tasks-page" class="page">
-                 <div class="p-4 space-y-3">
-                    <h1 class="text-2xl font-bold mb-4">Завдання</h1>
-                    
-                    <div id="task-group-subscribe" class="task-card bg-white p-4 rounded-xl border border-gray-200 space-y-3" data-reward="1500">
-                        <div>
-                            <h3 class="font-bold">Підписка на групу</h3>
-                            <p class="text-sm text-gray-600">Приєднайтесь до нашої спільноти.</p>
-                            <p class="text-sm text-gray-600 font-bold">Нагорода: 1,500 монет</p>
+                 <h1 class="section-title">Завдання</h1>
+                 <div class="section-card">
+                    <div id="task-group-subscribe" class="section-item task-card" data-reward="1500">
+                        <div class="icon" style="background-color: #007AFF;"><i class="fas fa-users"></i></div>
+                        <div class="content">
+                            <h3>Підписка на групу</h3>
+                            <p>Приєднайтесь до нашої спільноти.</p>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <a href="https://t.me/weebwe" target="_blank" class="task-button-secondary flex-1">Приєднатись</a>
-                            <button class="task-button flex-1">Перевірити</button>
+                        <div class="action ml-auto flex items-center space-x-2">
+                            <a href="https://t.me/weebwe" target="_blank" class="task-button-secondary">Вперед</a>
+                            <button class="task-button">Перевірити</button>
                         </div>
                     </div>
-
-                    <div id="task-channel-subscribe" class="task-card bg-white p-4 rounded-xl border border-gray-200" data-reward="1000">
-                        <h3 class="font-bold">Підписатись на канал</h3>
-                        <p class="text-sm text-gray-600">Нагорода: 1000 монет</p>
-                        <button class="mt-2 bg-[#0094FE] hover:bg-[#007acd] text-white w-full py-2 rounded-lg font-semibold">Виконати</button>
+                    <div id="task-channel-subscribe" class="section-item task-card" data-reward="1000">
+                        <div class="icon" style="background-color: #5856D6;"><i class="fab fa-telegram-plane"></i></div>
+                        <div class="content">
+                            <h3>Підписатись на канал</h3>
+                            <p>Слідкуйте за новинами.</p>
+                        </div>
+                        <div class="action ml-auto"><button class="task-button">Виконати</button></div>
                     </div>
-
-                    <div id="task-invite-friend" class="task-card bg-white p-4 rounded-xl border border-gray-200" data-reward="5000">
-                        <h3 class="font-bold">Запросити друга</h3>
-                        <p class="text-sm text-gray-600">Нагорода: 5000 монет за кожного</p>
-                        <button class="mt-2 bg-[#0094FE] hover:bg-[#007acd] text-white w-full py-2 rounded-lg font-semibold">Запросити</button>
+                    <div id="task-invite-friend" class="section-item task-card" data-reward="5000">
+                        <div class="icon" style="background-color: #34C759;"><i class="fas fa-user-plus"></i></div>
+                        <div class="content">
+                            <h3>Запросити друга</h3>
+                            <p>+5000 за кожного друга.</p>
+                        </div>
+                        <div class="action ml-auto"><button class="task-button">Запросити</button></div>
                     </div>
                  </div>
             </section>
-            <section id="shop-page" class="page"> <div class="p-4"> <h1 class="text-2xl font-bold mb-4">Магазин</h1> <div class="text-center text-gray-500 mt-16"> <i class="fas fa-store text-5xl mb-4"></i> <p>Скоро тут з'являться круті покращення!</p> </div> </div> </section>
-             <section id="leaders-page" class="page"> <div class="p-4"> <h1 class="text-2xl font-bold mb-4">Таблиця лідерів</h1> <div class="text-center text-gray-500 mt-16"> <i class="fas fa-trophy text-5xl text-yellow-500 mb-4"></i> <p>Змагайся з друзями! Скоро...</p> </div> </div> </section>
+
+            <section id="shop-page" class="page">
+                <h1 class="section-title">Магазин</h1>
+                <div class="section-card text-center text-gray-500 p-8">
+                    <i class="fas fa-store text-5xl mb-4 text-gray-400"></i>
+                    <p>Скоро тут з'являться круті покращення!</p>
+                </div>
+            </section>
+            
+            <section id="leaders-page" class="page">
+                <h1 class="section-title">Лідери</h1>
+                <div class="section-card text-center text-gray-500 p-8">
+                     <i class="fas fa-trophy text-5xl text-yellow-500 mb-4"></i>
+                     <p>Змагайся з друзями! Скоро...</p>
+                </div>
+             </section>
         </main>
         
-        <nav class="bottom-nav w-full p-2 flex justify-around items-center relative z-20"> <button data-page="home-page" class="nav-item active flex-1 flex flex-col items-center justify-center z-10 py-2"><i class="fas fa-home text-2xl"></i><span class="text-xs mt-1">Головна</span></button> <button data-page="tasks-page" class="nav-item flex-1 flex flex-col items-center justify-center z-10 py-2"><i class="fas fa-tasks text-2xl"></i><span class="text-xs mt-1">Завдання</span></button> <button data-page="shop-page" class="nav-item flex-1 flex flex-col items-center justify-center z-10 py-2"><i class="fas fa-store text-2xl"></i><span class="text-xs mt-1">Магазин</span></button> <button data-page="leaders-page" class="nav-item flex-1 flex flex-col items-center justify-center z-10 py-2"><i class="fas fa-trophy text-2xl"></i><span class="text-xs mt-1">Лідери</span></button> </nav>
+        <nav class="bottom-nav w-full p-2 flex justify-around items-center relative z-20">
+            <button data-page="home-page" class="nav-item active flex-1 flex flex-col items-center justify-center z-10 py-2"><i class="fas fa-home"></i><span class="text-xs mt-1">Головна</span></button>
+            <button data-page="tasks-page" class="nav-item flex-1 flex flex-col items-center justify-center z-10 py-2"><i class="fas fa-tasks"></i><span class="text-xs mt-1">Завдання</span></button>
+            <button data-page="shop-page" class="nav-item flex-1 flex flex-col items-center justify-center z-10 py-2"><i class="fas fa-store"></i><span class="text-xs mt-1">Магазин</span></button>
+            <button data-page="leaders-page" class="nav-item flex-1 flex flex-col items-center justify-center z-10 py-2"><i class="fas fa-trophy"></i><span class="text-xs mt-1">Лідери</span></button>
+        </nav>
     </div>
 
-    <div id="profile-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden"> <div id="profile-modal-backdrop" class="absolute inset-0"></div> <div id="profile-modal-content" class="w-full max-w-md mx-auto bg-white rounded-2xl shadow-lg p-6 space-y-5 z-10 m-4 transform scale-95 opacity-0"> <div class="flex justify-between items-start"> <div class="flex items-center space-x-4"> <img id="user-photo" src="https://placehold.co/128x128/E0E0E0/BDBDBD?text=?" alt="Аватар" class="w-16 h-16 rounded-full border-2 border-gray-200 object-cover"> <div> <h1 id="user-name" class="text-xl font-bold text-gray-800">Ім'я</h1> <p id="user-username" class="text-sm text-gray-500">@username</p> </div> </div> <button id="close-profile-btn" class="text-gray-400 hover:text-gray-800 text-2xl">&times;</button> </div> <div> <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Ваш баланс</h3> <div class="space-y-2 text-lg bg-gray-50 p-3 rounded-lg"> <div class="flex justify-between items-center font-bold"> <div class="flex items-center space-x-2"> <img src="https://weebwe.github.io/WeeClick/logo.png" class="w-6 h-6"/> <span>Монети</span> </div> <span id="profile-score-display">0</span> </div> <div class="flex justify-between items-center font-bold"> <div class="flex items-center space-x-2"> <img src="https://weebwe.github.io/wee.png" class="w-6 h-6"/> <span>WEE</span> </div> <span id="profile-score2-display">0</span> </div> </div> </div> <div> <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Налаштування</h3> <div class="space-y-2"> <button id="toggle-music-btn" class="settings-toggle w-full flex justify-between items-center p-3 rounded-lg"> <span>Фонова музика</span> <i class="fas fa-volume-up"></i> </button> <button id="toggle-effects-btn" class="settings-toggle w-full flex justify-between items-center p-3 rounded-lg"> <span>Звукові ефекти</span> <i class="fas fa-star"></i> </button> </div> </div> <div id="wallet-info" class="pt-4 border-t border-gray-100"> <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Підключений гаманець</h2> <p id="wallet-address" class="text-sm font-mono text-center bg-gray-100 text-gray-600 p-2 rounded-lg break-all"></p> </div> </div> </div>
+    <div id="profile-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div id="profile-modal-backdrop" class="absolute inset-0"></div>
+        <div id="profile-modal-content" class="w-full max-w-md mx-auto bg-white rounded-2xl shadow-lg p-6 space-y-5 z-10 m-4 transform scale-95 opacity-0">
+            <div class="flex justify-between items-start">
+                <div class="flex items-center space-x-4">
+                    <img id="user-photo" src="https://placehold.co/128x128/E0E0E0/BDBDBD?text=?" alt="Аватар" class="w-16 h-16 rounded-full border-2 border-gray-200 object-cover">
+                    <div>
+                        <h1 id="user-name" class="text-xl font-bold text-gray-800">Ім'я</h1>
+                        <p id="user-username" class="text-sm text-gray-500">@username</p>
+                    </div>
+                </div>
+                <button id="close-profile-btn" class="text-gray-400 hover:text-gray-800 text-2xl">&times;</button>
+            </div>
+            
+            <div class="section-card">
+                 <div class="section-item">
+                    <div class="content flex justify-between items-center w-full font-bold">
+                        <div class="flex items-center space-x-2"> <img src="https://weebwe.github.io/WeeClick/logo.png" class="w-6 h-6"/> <span>Монети</span> </div>
+                        <span id="profile-score-display">0</span>
+                    </div>
+                 </div>
+                 <div class="section-item">
+                    <div class="content flex justify-between items-center w-full font-bold">
+                        <div class="flex items-center space-x-2"> <img src="https://weebwe.github.io/wee.png" class="w-6 h-6"/> <span>WEE</span> </div>
+                        <span id="profile-score2-display">0</span>
+                    </div>
+                 </div>
+            </div>
+            
+            <div class="section-card">
+                <button id="toggle-music-btn" class="section-item settings-toggle w-full">
+                    <div class="icon" style="background-color: #FF9500;"><i class="fas fa-music"></i></div>
+                    <div class="content"><h3>Фонова музика</h3></div>
+                    <div class="action ml-auto"><i class="fas fa-volume-up"></i></div>
+                </button>
+                <button id="toggle-effects-btn" class="section-item settings-toggle w-full">
+                    <div class="icon" style="background-color: #5856D6;"><i class="fas fa-magic"></i></div>
+                    <div class="content"><h3>Звукові ефекти</h3></div>
+                    <div class="action ml-auto"><i class="fas fa-star"></i></div>
+                </button>
+            </div>
+            
+            <div id="wallet-info" class="pt-4">
+                <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 text-center">Підключений гаманець</h2>
+                <p id="wallet-address" class="text-sm font-mono text-center bg-gray-100 text-gray-600 p-2 rounded-lg break-all"></p>
+            </div>
+        </div>
+    </div>
     
     <script src="js/app.js" type="module" defer></script>
 </body>
