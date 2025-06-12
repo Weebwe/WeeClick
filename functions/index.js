@@ -27,17 +27,25 @@ exports.monthlyPrizeDistribution = functions.pubsub
             if (snapshot.empty) return null;
             const prizePerWinner = 10000 / snapshot.size;
             const batch = db.batch();
-            snapshot.forEach(doc => batch.update(doc.ref, { score2: admin.firestore.FieldValue.increment(prizePerWinner) }));
+            snapshot.forEach(doc => batch.update(doc.ref, { 
+                score2: admin.firestore.FieldValue.increment(prizePerWinner),
+                monthlyScore: 0
+            }));
             await batch.commit();
-            console.log("Prize distribution complete.");
+            console.log("Prize distribution and reset complete.");
             return null;
-        } catch (error) { return null; }
+        } catch (error) { 
+            console.error("Error in monthly prize distribution:", error);
+            return null; 
+        }
     });
 
 exports.completeCustomTask = functions.https.onCall(async (data, context) => {
     if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'The function must be called while authenticated.');
     const { taskId } = data;
     const userId = context.auth.uid;
+    if(!taskId) throw new functions.https.HttpsError('invalid-argument', 'The function must be called with one argument "taskId".');
+
     const taskRef = db.collection('customTasks').doc(taskId);
     const playerRef = db.collection('players').doc(userId);
     const completionRef = taskRef.collection('completedBy').doc(userId);
@@ -70,6 +78,7 @@ exports.completeCustomTask = functions.https.onCall(async (data, context) => {
         return { success: true, message: "Нагороду зараховано!", newScore: result.newScore };
 
     } catch (error) {
+        console.error('Transaction failed: ', error);
         throw new functions.https.HttpsError('aborted', error.message);
     }
 });
