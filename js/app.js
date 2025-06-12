@@ -1,31 +1,17 @@
-// Імпортуємо необхідні модулі з Firebase
 import { db, functions } from './firebase-config.js';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, orderBy, limit, getDocs, where, addDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-functions.js";
-
-// Весь код виконується після повного завантаження сторінки
 document.addEventListener('DOMContentLoaded', () => {
-    // ---- ГЛОБАЛЬНІ ЗМІННІ ТА КОНСТАНТИ ----
-
-    // Ініціалізація API Telegram та TON Connect
     const tg = window.Telegram?.WebApp;
     const TON_CONNECT_UI = window.TON_CONNECT_UI;
-
     if (!tg || !TON_CONNECT_UI) {
-        console.error("Ключові скрипти Telegram або TON Connect не завантажено!");
-        document.body.innerHTML = 'Помилка завантаження. Будь ласка, перезапустіть додаток.';
+        console.error("Scripts not loaded!");
+        document.body.innerHTML = 'Error loading. Please refresh.';
         return;
     }
-
     tg.ready();
     tg.expand();
-
-    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-        manifestUrl: 'https://weebwe.github.io/WeeClick/manifest.json',
-        buttonRootId: 'ton-connect-header'
-    });
-
-    // Отримання посилань на DOM-елементи
+    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({ manifestUrl: 'https://weebwe.github.io/WeeClick/manifest.json', buttonRootId: 'ton-connect-header' });
     const loaderScreen = document.getElementById('loader-screen');
     const progressBar = document.getElementById('progress-bar');
     const mainApp = document.getElementById('main-app');
@@ -50,44 +36,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleMusicBtn = document.getElementById('toggle-music-btn');
     const toggleEffectsBtn = document.getElementById('toggle-effects-btn');
     const inviteFriendBtn = document.getElementById('invite-friend-btn');
+    const allTaskCards = document.querySelectorAll('.task-card');
     const exchangeInput = document.getElementById('exchange-input');
     const exchangeBtn = document.getElementById('exchange-btn');
     const leaderboardTabs = document.querySelectorAll('.leaderboard-tab');
     const leaderboardList = document.getElementById('leaderboard-list');
     const monthlyLeaderboardInfo = document.getElementById('monthly-leaderboard-info');
     const seasonTimer = document.getElementById('season-timer');
+    const goToCreateTaskBtn = document.getElementById('go-to-create-task-btn');
+    const taskUrlInput = document.getElementById('task-url');
+    const taskRewardInput = document.getElementById('task-reward');
+    const taskGoalInput = document.getElementById('task-goal');
+    const calcTotalSpan = document.getElementById('calc-total');
+    const calcCommissionSpan = document.getElementById('calc-commission');
+    const calcFinalSpan = document.getElementById('calc-final');
+    const createTaskConfirmBtn = document.getElementById('create-task-confirm-btn');
     const customTasksContainer = document.getElementById('custom-tasks-container');
-
-    // Стан гри
     let score = 0, score2 = 10, lives = 3, monthlyScore = 0;
     let completedTasks = [], isMusicEnabled = true, areEffectsEnabled = true;
     let playerDocRef, userId;
-    let isMusicUnmuted = false; // Прапорець для авто-відтворення музики
-    let seasonTimerInterval = null; // ID інтервалу для таймера сезону
-    let clicksBuffer = 0; // Буфер кліків для відправки на сервер
-
-    // Аудіо
+    let isMusicUnmuted = false;
+    let seasonTimerInterval = null;
     const clickSound = new Audio('sounds/click.mp3');
     const backgroundMusic = new Audio('sounds/background.mp3');
     backgroundMusic.loop = true;
-    backgroundMusic.volume = 0.3;
-
-    // ---- ОСНОВНА ЛОГІКА ----
-
-    /**
-     * Ініціалізує додаток: отримує дані користувача, завантажує прогрес, налаштовує обробники.
-     */
+    backgroundMusic.volume = .3;
     async function initializeApp() {
         const user = tg.initDataUnsafe?.user;
         if (!user) {
-            console.error("Ідентифікація користувача Telegram не вдалася.");
-            document.body.innerHTML = "Помилка ідентифікації. Будь ласка, перезапустіть додаток.";
+            console.error("User identification failed.");
+            document.body.innerHTML = "Identification error. Please restart.";
             return;
         }
-
         userId = user.id.toString();
         playerDocRef = doc(db, "players", userId);
-
         try {
             const docSnap = await getDoc(playerDocRef);
             if (docSnap.exists()) {
@@ -99,34 +81,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 completedTasks = data.completedTasks ?? [];
                 isMusicEnabled = data.settings?.isMusicEnabled ?? true;
                 areEffectsEnabled = data.settings?.areEffectsEnabled ?? true;
+                completedTasks.forEach(taskId => updateTaskView(taskId, false));
             } else {
-                const initialData = {
-                    score: 0, score2: 10, lives: 3, monthlyScore: 0,
-                    completedTasks: [],
-                    firstName: user.first_name || "Guest",
-                    username: user.username || "unknown",
-                    photo_url: user.photo_url || null,
-                    createdAt: serverTimestamp(),
-                    settings: { isMusicEnabled: true, areEffectsEnabled: true },
-                    referredBy: null
-                };
+                const initialData = { score: 0, score2: 10, lives: 3, monthlyScore: 0, completedTasks: [], firstName: user.first_name || "Guest", username: user.username || "unknown", photo_url: user.photo_url || null, createdAt: serverTimestamp(), settings: { isMusicEnabled: true, areEffectsEnabled: true }, referredBy: null };
                 const startParam = tg.initDataUnsafe?.start_param;
                 if (startParam && startParam.startsWith('ref_')) {
                     const referrerId = startParam.substring(4);
-                    if (referrerId !== userId) initialData.referredBy = referrerId;
+                    if (referrerId !== userId) initialData.referredBy = referrerId
                 }
                 await setDoc(playerDocRef, initialData);
-                // Встановлюємо локальні змінні з початкових даних
-                ({ score, score2, lives, monthlyScore, completedTasks } = initialData);
+                score = initialData.score;
+                score2 = initialData.score2;
+                lives = initialData.lives;
+                monthlyScore = initialData.monthlyScore;
+                completedTasks = initialData.completedTasks;
                 isMusicEnabled = initialData.settings.isMusicEnabled;
                 areEffectsEnabled = initialData.settings.areEffectsEnabled;
             }
         } catch (error) {
-            console.error("Помилка при роботі з Firestore:", error);
-            tg.showAlert("Не вдалося завантажити профіль. Перевірте з'єднання з інтернетом.");
+            console.error("Firestore Error:", error);
+            tg.showAlert("Failed to load profile. Check your connection.");
             return;
         }
-
         populateProfileData(user);
         updateAllStatsUI();
         updateSettingsUI();
@@ -134,28 +110,16 @@ document.addEventListener('DOMContentLoaded', () => {
         showPage('home-page');
         startLoadingSimulation();
     }
-
-    /**
-     * Зберігає налаштування або некритичні дані на сервері.
-     * @param {object} dataToSave - Об'єкт з даними для оновлення.
-     */
-    async function saveNonCriticalProgress(dataToSave) {
+    async function saveProgress(dataToSave) {
         if (!playerDocRef) return;
         try {
-            await updateDoc(playerDocRef, dataToSave);
+            await updateDoc(playerDocRef, dataToSave)
         } catch (error) {
-            console.error("Помилка збереження прогресу:", error);
+            console.error("Save Progress Error:", error);
         }
     }
-
-    /**
-     * Імітація завантаження для кращого користувацького досвіду.
-     */
     function startLoadingSimulation() {
-        if (isMusicEnabled) {
-            backgroundMusic.muted = true; // Музика почнеться тихо, користувач увімкне її кліком
-            backgroundMusic.play().catch(e => console.warn("Не вдалося запустити музику автоматично."));
-        }
+        if (isMusicEnabled) backgroundMusic.muted = true, backgroundMusic.play().catch(e => {});
         let progress = 0;
         const interval = setInterval(() => {
             progress += 1;
@@ -165,40 +129,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (loaderScreen) loaderScreen.style.opacity = '0';
                 if (mainApp) {
                     mainApp.classList.remove('hidden');
-                    mainApp.classList.add('flex');
+                    mainApp.classList.add('flex')
                 }
-                setTimeout(() => {
-                    if (loaderScreen) loaderScreen.style.display = 'none';
-                }, 500);
+                setTimeout(() => { if (loaderScreen) loaderScreen.style.display = 'none' }, 500)
             }
-        }, 25);
+        }, 25)
     }
-    
-    /**
-     * Заповнює дані профілю користувача в UI.
-     * @param {object} user - Об'єкт користувача від Telegram.
-     */
     function populateProfileData(user) {
         if (!user) return;
-        userName.textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Guest';
+        userName.textContent = `${user.first_name||''} ${user.last_name||''}`.trim() || 'Guest';
         userUsername.textContent = user.username ? `@${user.username}` : 'No username';
         if (user.photo_url) userPhoto.src = user.photo_url;
-        document.getElementById('copyright-year').textContent = new Date().getFullYear().toString();
+        document.getElementById('copyright-year').textContent = (new Date).getFullYear();
     }
-
-    // ---- ОБРОБНИКИ ПОДІЙ ----
-
-    /**
-     * Встановлює всі основні обробники подій.
-     */
     function setupEventListeners() {
-        clickerButton.addEventListener('click', handleSafeClick);
+        clickerButton.addEventListener('click', event => {
+            if (isMusicEnabled && !isMusicUnmuted) {
+                backgroundMusic.muted = false;
+                isMusicUnmuted = true;
+            }
+            score++;
+            monthlyScore++;
+            updateAllStatsUI();
+            animateClick(event);
+            if (score % 20 === 0) saveProgress({ score: score, monthlyScore: monthlyScore });
+        });
+        allTaskCards.forEach(card => {
+            const button = card.querySelector('.js-task-action-btn');
+            if (button) button.addEventListener('click', () => handleTaskCompletion(card));
+        });
         toggleMusicBtn.addEventListener('click', toggleMusic);
         toggleEffectsBtn.addEventListener('click', toggleEffects);
         document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden' && clicksBuffer > 0) {
-                sendClicksToServer();
-            }
+            if (document.visibilityState === 'hidden') saveProgress({ score, score2, lives, monthlyScore });
         });
         navItems.forEach(item => item.addEventListener('click', () => {
             showPage(item.dataset.page);
@@ -208,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
         closeProfileBtn.addEventListener('click', hideProfileModal);
         profileModalBackdrop.addEventListener('click', hideProfileModal);
         tonConnectUI.onStatusChange(updateWalletUI);
-        exchangeBtn.addEventListener('click', handleSafeExchange);
+        exchangeBtn.addEventListener('click', handleExchange);
         inviteFriendBtn.addEventListener('click', handleInvite);
         leaderboardTabs.forEach(tab => {
             tab.addEventListener('click', () => {
@@ -217,149 +180,82 @@ document.addEventListener('DOMContentLoaded', () => {
                 const type = tab.dataset.leaderboard;
                 monthlyLeaderboardInfo.classList.toggle('hidden', type !== 'monthly');
                 loadLeaderboard(type);
-            });
+            })
         });
+        goToCreateTaskBtn.addEventListener('click', () => showPage('create-task-page'));
+        [taskRewardInput, taskGoalInput].forEach(input => input.addEventListener('input', calculateTaskCost));
+        createTaskConfirmBtn.addEventListener('click', confirmAndCreateTask);
     }
-
-    /**
-     * БЕЗПЕЧНА обробка кліку. Оновлює UI миттєво, а дані відправляє на сервер пакетами.
-     * @param {Event} event - Подія кліку.
-     */
-    function handleSafeClick(event) {
-        if (isMusicEnabled && !isMusicUnmuted) {
-            backgroundMusic.muted = false;
-            isMusicUnmuted = true;
-        }
-        
-        score++;
-        monthlyScore++;
-        clicksBuffer++;
-        
-        updateAllStatsUI();
-        animateClick(event);
-        
-        // Відправляємо накопичені кліки на сервер кожні 15 кліків
-        if (clicksBuffer >= 15) {
-            sendClicksToServer();
-        }
-    }
-
-    /**
-     * БЕЗПЕЧНА відправка даних про кліки на хмарну функцію.
-     */
-    async function sendClicksToServer() {
-        if (clicksBuffer === 0) return;
-        const clicksToSend = clicksBuffer;
-        clicksBuffer = 0; // Скидаємо буфер одразу, щоб уникнути подвійних відправок
-
-        try {
-            // ВАЖЛИВО: Вам потрібно створити хмарну функцію з назвою 'incrementScore'
-            const incrementScore = httpsCallable(functions, 'incrementScore');
-            await incrementScore({ amount: clicksToSend });
-        } catch (error) {
-            console.error("Помилка при відправці кліків на сервер:", error);
-            clicksBuffer += clicksToSend; // Повертаємо кліки в буфер у разі помилки
-        }
-    }
-    
-    /**
-     * БЕЗПЕЧНИЙ обмін валюти через хмарну функцію.
-     */
-    async function handleSafeExchange() {
-        const rate = 1_000_000;
-        const amount = parseInt(exchangeInput.value);
-
-        if (isNaN(amount) || amount <= 0) {
-            return tg.showAlert("Введіть коректну кількість для обміну.");
-        }
-        if (amount % rate !== 0) {
-            return tg.showAlert(`Сума має бути кратною ${rate.toLocaleString('uk-UA')}.`);
-        }
-
-        exchangeBtn.disabled = true;
-        exchangeBtn.textContent = 'Обробка...';
-
-        try {
-            // ВАЖЛИВО: Вам потрібно створити хмарну функцію з назвою 'exchangeCurrency'
-            const exchangeCurrency = httpsCallable(functions, 'exchangeCurrency');
-            const result = await exchangeCurrency({ amountToExchange: amount });
-
-            if (result.data.success) {
-                // Оновлюємо локальні дані з відповіді сервера
-                score = result.data.newScore;
-                score2 = result.data.newScore2;
-                updateAllStatsUI();
-                exchangeInput.value = '';
-                tg.showAlert(`Ви успішно обміняли ${amount.toLocaleString('uk-UA')} монет на ${result.data.receivedAmount.toLocaleString('uk-UA')} WEE!`);
-            } else {
-                tg.showAlert(result.data.message || 'Помилка обміну.');
-            }
-        } catch (error) {
-            console.error("Серверна помилка при обміні:", error);
-            tg.showAlert('Не вдалося виконати обмін. Спробуйте пізніше.');
-        } finally {
-            exchangeBtn.disabled = false;
-            exchangeBtn.textContent = 'Обміняти';
-        }
-    }
-
     function toggleMusic() {
         isMusicEnabled = !isMusicEnabled;
         updateSettingsUI();
-        saveNonCriticalProgress({ 'settings.isMusicEnabled': isMusicEnabled });
+        saveProgress({ 'settings.isMusicEnabled': isMusicEnabled });
         isMusicEnabled ? backgroundMusic.play().catch(e => {}) : backgroundMusic.pause();
     }
-
     function toggleEffects() {
         areEffectsEnabled = !areEffectsEnabled;
         updateSettingsUI();
-        saveNonCriticalProgress({ 'settings.areEffectsEnabled': areEffectsEnabled });
+        saveProgress({ 'settings.areEffectsEnabled': areEffectsEnabled });
     }
-
-    // ---- ОНОВЛЕННЯ UI ----
-
     function updateSettingsUI() {
         if (!toggleMusicBtn || !toggleEffectsBtn) return;
-        const musicIcon = toggleMusicBtn.querySelector('i');
-        const effectsIcon = toggleEffectsBtn.querySelector('i');
+        const musicIcon = toggleMusicBtn.querySelector('i'),
+            effectsIcon = toggleEffectsBtn.querySelector('i');
         toggleMusicBtn.classList.toggle('active', isMusicEnabled);
         musicIcon.className = isMusicEnabled ? 'fas fa-volume-up' : 'fas fa-volume-mute';
         toggleEffectsBtn.classList.toggle('active', areEffectsEnabled);
         effectsIcon.className = areEffectsEnabled ? 'fas fa-star' : 'fas fa-star-half-alt';
     }
-    
     function updateAllStatsUI() {
-        const fScore = score.toLocaleString('uk-UA');
-        const fScore2 = score2.toLocaleString('uk-UA');
+        const fScore = score.toLocaleString('uk-UA'),
+            fScore2 = score2.toLocaleString('uk-UA');
         if (scoreDisplay) scoreDisplay.textContent = fScore;
         if (profileScoreDisplay) profileScoreDisplay.textContent = fScore;
         if (score2Display) score2Display.textContent = fScore2;
         if (profileScore2Display) profileScore2Display.textContent = fScore2;
-        if (livesDisplay) livesDisplay.textContent = lives.toString();
+        if (livesDisplay) livesDisplay.textContent = lives;
     }
-
     function animateClick(e) {
-        if (areEffectsEnabled) {
-            clickSound.currentTime = 0;
-            clickSound.play().catch(e => {});
-        }
+        if (areEffectsEnabled) clickSound.currentTime = 0, clickSound.play().catch(e => {});
         const animation = document.createElement('span');
         animation.className = 'click-animation';
         animation.textContent = '+1';
         const rect = clickerContainer.getBoundingClientRect();
-        animation.style.left = `${e.clientX - rect.left - 15}px`;
-        animation.style.top = `${e.clientY - rect.top - 30}px`;
+        animation.style.left = `${e.clientX-rect.left-15}px`;
+        animation.style.top = `${e.clientY-rect.top-30}px`;
         clickerContainer.appendChild(animation);
         setTimeout(() => animation.remove(), 1000);
     }
-    
+    function updateTaskView(taskId, shouldMove = true) {
+        const taskCard = document.getElementById(taskId);
+        if (taskCard) {
+            taskCard.classList.add('completed');
+            const button = taskCard.querySelector('.task-button, .js-task-action-btn');
+            if (button) {
+                button.disabled = true;
+                button.textContent = 'Виконано';
+            }
+            const joinButton = taskCard.querySelector('.task-button-secondary');
+            if (joinButton) joinButton.style.pointerEvents = 'none';
+            const tasksContainerEl = document.querySelector('#tasks-container');
+            if (tasksContainerEl && shouldMove) tasksContainerEl.appendChild(taskCard);
+        }
+    }
+    function handleTaskCompletion(taskCard) {
+        if (!taskCard || taskCard.classList.contains('completed')) return;
+        const reward = parseInt(taskCard.dataset.reward || '0');
+        score += reward;
+        completedTasks.push(taskCard.id);
+        updateAllStatsUI();
+        updateTaskView(taskCard.id, true);
+        tg.showAlert(`Нагороду в ${reward.toLocaleString('uk-UA')} монет зараховано!`);
+        saveProgress({ score: score, completedTasks: completedTasks });
+    }
     function showPage(pageId) {
         pages.forEach(p => p.classList.toggle('page-active', p.id === pageId));
-        
-        // Ефективне керування таймером
         if (pageId === 'leaders-page') {
             if (!seasonTimerInterval) {
-                updateSeasonTimer(); // Оновити одразу
+                updateSeasonTimer();
                 seasonTimerInterval = setInterval(updateSeasonTimer, 1000);
             }
             const activeTab = document.querySelector('.leaderboard-tab.active')?.dataset.leaderboard || 'all-time';
@@ -370,17 +266,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 seasonTimerInterval = null;
             }
         }
-
-        if (pageId === 'tasks-page') {
-            // Логіка завантаження завдань, якщо потрібно
-        }
+        if (pageId === 'tasks-page') loadCustomTasks();
     }
-    
     function updateActiveNavItem(activeItem) {
         navItems.forEach(item => item.classList.remove('active'));
         activeItem.classList.add('active');
     }
-
     function showProfileModal() {
         updateAllStatsUI();
         updateWalletUI(tonConnectUI.wallet);
@@ -390,13 +281,11 @@ document.addEventListener('DOMContentLoaded', () => {
             profileModalContent.classList.remove('scale-95', 'opacity-0');
         }, 10);
     }
-
     function hideProfileModal() {
         profileModalBackdrop.classList.add('opacity-0');
         profileModalContent.classList.add('scale-95', 'opacity-0');
         setTimeout(() => profileModal.classList.add('hidden'), 300);
     }
-
     function updateWalletUI(wallet) {
         if (wallet) {
             const address = TON_CONNECT_UI.toUserFriendlyAddress(wallet.account.address, wallet.account.chain === '-3');
@@ -409,24 +298,30 @@ document.addEventListener('DOMContentLoaded', () => {
             walletAddressP.classList.remove('text-blue-700', 'bg-blue-50');
         }
     }
-
+    function handleExchange() {
+        const rate = 1e6,
+            amount = parseInt(exchangeInput.value);
+        if (isNaN(amount) || amount <= 0) return tg.showAlert("Введіть коректну кількість.");
+        if (score < amount) return tg.showAlert("Недостатньо монет.");
+        if (amount % rate !== 0) return tg.showAlert(`Сума має бути кратною ${rate.toLocaleString('uk-UA')}.`);
+        const received = amount / rate;
+        score -= amount;
+        score2 += received;
+        updateAllStatsUI();
+        exchangeInput.value = '';
+        tg.showAlert(`Ви обміняли ${amount.toLocaleString('uk-UA')} монет на ${received.toLocaleString('uk-UA')} WEE!`);
+        saveProgress({ score: score, score2: score2 });
+    }
     function handleInvite() {
-        if (!userId) return tg.showAlert('Не вдалося отримати ваш ID для запрошення.');
-        // ВАЖЛИВО: Замініть 'your_bot_name_here' на реальне ім'я вашого бота
-        const botUsername = 'your_bot_name_here';
+        if (!userId) return tg.showAlert('Не вдалося отримати ID.');
+        const botUsername = 'YourBotUsername';
         const link = `https://t.me/${botUsername}?start=ref_${userId}`;
         tg.switchInlineQuery(`Привіт! Приєднуйся до гри WeeClick та заробляй!\n\n${link}`, []);
     }
-
-    /**
-     * БЕЗПЕЧНЕ завантаження та відображення таблиці лідерів.
-     * @param {string} type - Тип таблиці ('all-time' або 'monthly').
-     */
     async function loadLeaderboard(type = 'all-time') {
         leaderboardList.innerHTML = `<div id="loader-spinner" class="text-center p-10"><i class="fas fa-spinner fa-spin fa-3x text-gray-400"></i></div>`;
         const field = type === 'monthly' ? 'monthlyScore' : 'score';
         const q = query(collection(db, "players"), orderBy(field, "desc"), limit(100));
-
         try {
             const querySnapshot = await getDocs(q);
             leaderboardList.innerHTML = '';
@@ -434,61 +329,123 @@ document.addEventListener('DOMContentLoaded', () => {
             querySnapshot.forEach(doc => {
                 const player = doc.data();
                 const scoreToShow = player[field] || 0;
-
-                // Створюємо елементи програмно, щоб уникнути XSS-вразливостей
                 const playerElement = document.createElement('div');
                 playerElement.className = 'flex items-center bg-white p-3 rounded-xl shadow-sm';
-
                 const rankSpan = document.createElement('span');
                 rankSpan.className = 'font-bold text-lg w-10 text-gray-500';
                 rankSpan.textContent = rank.toString();
-
                 const avatarImg = document.createElement('img');
                 avatarImg.className = 'w-10 h-10 rounded-full mr-3 border-2 border-gray-200';
                 avatarImg.src = player.photo_url || 'https://placehold.co/128x128/E0E0E0/BDBDBD?text=?';
                 avatarImg.alt = 'Avatar';
-                
                 const infoDiv = document.createElement('div');
                 infoDiv.className = 'flex-grow';
-                
                 const nameP = document.createElement('p');
                 nameP.className = 'font-bold truncate';
-                nameP.textContent = player.firstName || 'Player'; // Безпечна вставка імені
-
+                nameP.textContent = player.firstName || 'Player';
                 const scoreP = document.createElement('p');
                 scoreP.className = 'text-sm text-gray-500';
-                scoreP.textContent = scoreToShow.toLocaleString('uk-UA'); // Безпечна вставка рахунку
-
+                scoreP.textContent = scoreToShow.toLocaleString('uk-UA');
                 infoDiv.append(nameP, scoreP);
                 playerElement.append(rankSpan, avatarImg, infoDiv);
                 leaderboardList.appendChild(playerElement);
-                
                 rank++;
             });
         } catch (error) {
-            console.error("Помилка завантаження лідерів:", error);
-            leaderboardList.innerHTML = '<p class="text-center text-red-500">Не вдалося завантажити таблицю лідерів.</p>';
+            leaderboardList.innerHTML = '<p class="text-center text-red-500">Не вдалося завантажити.</p>';
         }
     }
-
     function updateSeasonTimer() {
-        const now = new Date();
-        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59); // Кінець поточного місяця
+        const now = new Date,
+            end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
         const diff = end - now;
-
         if (diff < 0) {
-            seasonTimer.textContent = "Сезон завершено!";
+            seasonTimer.textContent = "Завершено!";
             return;
         }
-
-        const d = Math.floor(diff / 86400000);
-        const h = Math.floor((diff % 86400000) / 3600000);
-        const m = Math.floor((diff % 3600000) / 60000);
-        const s = Math.floor((diff % 60000) / 1000);
-
+        const d = Math.floor(diff / 864e5),
+            h = Math.floor(diff % 864e5 / 36e5),
+            m = Math.floor(diff % 36e5 / 6e4),
+            s = Math.floor(diff % 6e4 / 1e3);
         seasonTimer.textContent = `${d}д ${h}г ${m}хв ${s}с`;
     }
-
-    // ---- Запуск ----
+    function calculateTaskCost() {
+        const reward = parseInt(taskRewardInput.value) || 0;
+        const goal = parseInt(taskGoalInput.value) || 0;
+        const total = reward * goal;
+        const commission = total * .02;
+        const final = total + commission;
+        calcTotalSpan.textContent = total.toLocaleString('uk-UA');
+        calcCommissionSpan.textContent = commission.toLocaleString('uk-UA');
+        calcFinalSpan.textContent = `${final.toLocaleString('uk-UA')} WEE`;
+    }
+    async function confirmAndCreateTask() {
+        const url = taskUrlInput.value,
+            reward = parseInt(taskRewardInput.value),
+            goal = parseInt(taskGoalInput.value);
+        if (!url || !/^(https?|tg):\/\/[^\s/$.?#].[^\s]*$/i.test(url)) return tg.showAlert('Введіть коректне посилання.');
+        if (isNaN(reward) || reward <= 0) return tg.showAlert('Вкажіть коректну нагороду.');
+        if (isNaN(goal) || goal < 5) return tg.showAlert('Мінімальна кількість виконань - 5.');
+        const finalCost = reward * goal * 1.02;
+        if (score2 < finalCost) return tg.showAlert(`Недостатньо WEE. Потрібно ${finalCost.toLocaleString('uk-UA')}.`);
+        createTaskConfirmBtn.disabled = true;
+        createTaskConfirmBtn.textContent = 'Створення...';
+        try {
+            await addDoc(collection(db, 'customTasks'), { creatorId: userId, url: url, reward: reward, goal: goal, currentVisits: 0, isActive: true, createdAt: serverTimestamp() });
+            score2 -= finalCost;
+            await saveProgress({ score2: score2 });
+            updateAllStatsUI();
+            tg.showAlert('Завдання успішно створено!');
+            showPage('tasks-page');
+            taskUrlInput.value = '';
+            taskRewardInput.value = '';
+            taskGoalInput.value = '';
+        } catch (e) {
+            tg.showAlert('Помилка створення завдання.');
+        } finally {
+            createTaskConfirmBtn.disabled = false;
+            createTaskConfirmBtn.textContent = 'Створити та оплатити';
+        }
+    }
+    async function loadCustomTasks() {
+        customTasksContainer.innerHTML = '';
+        const q = query(collection(db, "customTasks"), where("isActive", "==", true), where("creatorId", "!=", userId), orderBy("createdAt", "desc"), limit(20));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach(doc => {
+            const task = doc.data();
+            const el = document.createElement('div');
+            el.className = 'task-card bg-white p-4 rounded-xl border border-gray-200';
+            el.innerHTML = `<div><h3 class="font-bold truncate">Перейти за посиланням</h3><p class="text-sm text-gray-600">Нагорода: ${task.reward.toLocaleString('uk-UA')} монет</p></div>
+<button data-task-id="${doc.id}" data-url="${task.url}" class="mt-2 task-button w-full js-custom-task-btn">Виконати (${task.currentVisits}/${task.goal})</button>`;
+            customTasksContainer.appendChild(el);
+        });
+        document.querySelectorAll('.js-custom-task-btn').forEach(btn => btn.addEventListener('click', handleCustomTaskCompletion));
+    }
+    async function handleCustomTaskCompletion(event) {
+        const button = event.target;
+        const taskId = button.dataset.taskId,
+            url = button.dataset.url;
+        button.disabled = true;
+        button.classList.add('disabled');
+        try {
+            const completeCustomTask = httpsCallable(functions, 'completeCustomTask');
+            const result = await completeCustomTask({ taskId: taskId });
+            if (result.data.success) {
+                tg.showAlert(result.data.message);
+                score = result.data.newScore;
+                updateAllStatsUI();
+                window.open(url, '_blank');
+                button.closest('.task-card').remove();
+            } else {
+                tg.showAlert(result.data.message || 'Помилка');
+                button.disabled = false;
+                button.classList.remove('disabled');
+            }
+        } catch (error) {
+            tg.showAlert(error.message || 'Серверна помилка. Спробуйте пізніше.');
+            button.disabled = false;
+            button.classList.remove('disabled');
+        }
+    }
     initializeApp();
 });
