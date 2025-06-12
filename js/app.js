@@ -423,29 +423,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     async function handleCustomTaskCompletion(event) {
         const button = event.target;
-        const taskId = button.dataset.taskId,
-            url = button.dataset.url;
-        button.disabled = true;
-        button.classList.add('disabled');
-        try {
-            const completeCustomTask = httpsCallable(functions, 'completeCustomTask');
-            const result = await completeCustomTask({ taskId: taskId });
-            if (result.data.success) {
-                tg.showAlert(result.data.message);
-                score = result.data.newScore;
-                updateAllStatsUI();
-                window.open(url, '_blank');
-                button.closest('.task-card').remove();
-            } else {
-                tg.showAlert(result.data.message || 'Помилка');
-                button.disabled = false;
-                button.classList.remove('disabled');
-            }
-        } catch (error) {
-            tg.showAlert(error.message || 'Серверна помилка. Спробуйте пізніше.');
-            button.disabled = false;
-            button.classList.remove('disabled');
+        if (button.disabled) return;
+        const taskId = button.dataset.taskId;
+        const url = button.dataset.url;
+        const taskCard = button.closest('.task-card');
+        const rewardText = taskCard.querySelector('.text-sm').textContent;
+        const reward = parseInt(rewardText.replace(/[^0-9]/g, '')) || 0;
+        if (isNaN(reward)) {
+            console.error("Could not parse reward for task " + taskId);
+            return;
         }
+        button.disabled = true;
+        button.textContent = 'Виконано';
+        button.classList.add('disabled');
+        score += reward;
+        completedTasks.push(taskId);
+        await saveProgress({ score: score, completedTasks: completedTasks });
+        updateAllStatsUI();
+        tg.showAlert(`Нагороду в ${reward.toLocaleString('uk-UA')} монет зараховано!`);
+        window.open(url, '_blank');
+        setTimeout(() => {
+            taskCard.remove();
+        }, 500);
     }
     initializeApp();
 });
