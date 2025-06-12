@@ -15,14 +15,9 @@
 </head>
 <body>
     <div id="loader-screen" class="w-full h-full fixed top-0 left-0 z-50 bg-white flex flex-col items-center justify-center">
-        <div class="flex flex-col items-center">
-            <div id="logo-image-container">
-                <img src="https://weebwe.github.io/WeeClick/logo.png" alt="WeeClick Logo" class="w-32 h-32">
-            </div>
-            <div id="animated-logo-text" class="mt-4">WeeClick</div>
-            <div id="progress-bar-container">
-                <div id="progress-bar"></div>
-            </div>
+        <div id="loader-content" class="relative flex items-center justify-center">
+            <div id="loader-ripple"></div>
+            <img src="https://weebwe.github.io/WeeClick/logo.png" alt="WeeClick Logo" class="w-32 h-32 z-10">
         </div>
         <p id="copyright-notice">&copy; <span id="copyright-year">2025</span> WeeClick. Всі права захищено.</p>
     </div>
@@ -68,7 +63,7 @@
             
             <section id="tasks-page" class="page">
                  <h1 class="section-title">Завдання</h1>
-                 <div class="section-card">
+                 <div id="tasks-list-container" class="section-card">
                     <div id="task-group-subscribe" class="section-item task-card" data-reward="1500">
                         <div class="icon" style="background-color: #007AFF;"><i class="fas fa-users"></i></div>
                         <div class="content">
@@ -79,22 +74,6 @@
                             <a href="https://t.me/weebwe" target="_blank" class="task-button-secondary">Вперед</a>
                             <button class="task-button">Перевірити</button>
                         </div>
-                    </div>
-                    <div id="task-channel-subscribe" class="section-item task-card" data-reward="1000">
-                        <div class="icon" style="background-color: #5856D6;"><i class="fab fa-telegram-plane"></i></div>
-                        <div class="content">
-                            <h3>Підписатись на канал</h3>
-                            <p>Слідкуйте за новинами.</p>
-                        </div>
-                        <div class="action ml-auto"><button class="task-button">Виконати</button></div>
-                    </div>
-                    <div id="task-invite-friend" class="section-item task-card" data-reward="5000">
-                        <div class="icon" style="background-color: #34C759;"><i class="fas fa-user-plus"></i></div>
-                        <div class="content">
-                            <h3>Запросити друга</h3>
-                            <p>+5000 за кожного друга.</p>
-                        </div>
-                        <div class="action ml-auto"><button class="task-button">Запросити</button></div>
                     </div>
                  </div>
             </section>
