@@ -1,6 +1,5 @@
-import { db, functions } from './firebase-config.js';
+import { db } from './firebase-config.js';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, orderBy, limit, getDocs, where, addDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-import { httpsCallable } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-functions.js";
 document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram?.WebApp;
     const TON_CONNECT_UI = window.TON_CONNECT_UI;
