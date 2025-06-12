@@ -4,7 +4,7 @@ import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gst
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- Ініціалізація Telegram ---
+    // --- Ініціалізація Telegram та TON ---
     const tg = window.Telegram?.WebApp;
     const TON_CONNECT_UI = window.TON_CONNECT_UI;
 
@@ -24,8 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Пошук всіх необхідних елементів на сторінці ---
     const loaderScreen = document.getElementById('loader-screen');
-    const progressBar = document.getElementById('progress-bar');
-    const botBlockScreen = document.getElementById('bot-block-screen');
     const mainApp = document.getElementById('main-app');
     const scoreDisplay = document.getElementById('score-display');
     const score2Display = document.getElementById('score2-display');
@@ -47,19 +45,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const profileScore2Display = document.getElementById('profile-score2-display');
     const toggleMusicBtn = document.getElementById('toggle-music-btn');
     const toggleEffectsBtn = document.getElementById('toggle-effects-btn');
-    const tasksContainer = document.querySelector('#tasks-page .p-4');
     const allTaskCards = document.querySelectorAll('.task-card');
 
     // --- Ігровий стан ---
-    let score = 0;
-    let score2 = 10;
-    let lives = 3;
+    let score = 0, score2 = 10, lives = 3;
     let completedTasks = [];
-    let isMusicEnabled = true;
-    let areEffectsEnabled = true;
-    let playerDocRef; // Посилання на документ гравця в базі даних
-
-    let isMusicUnmuted = false; 
+    let isMusicEnabled = true, areEffectsEnabled = true;
+    let playerDocRef; 
 
     const clickSound = new Audio('sounds/click.mp3');
     const backgroundMusic = new Audio('sounds/background.mp3');
@@ -71,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
     async function initializeApp() {
         const user = tg.initDataUnsafe?.user;
         if (!user) {
-            console.error("Не вдалося ідентифікувати користувача Telegram.");
             document.body.innerHTML = "Помилка ідентифікації. Будь ласка, перезапустіть гру.";
             return;
         }
@@ -81,9 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const docSnap = await getDoc(playerDocRef);
-
             if (docSnap.exists()) {
-                console.log("Завантаження даних існуючого гравця...");
                 const data = docSnap.data();
                 score = data.score ?? 0;
                 score2 = data.score2 ?? 10;
@@ -91,66 +80,52 @@ document.addEventListener('DOMContentLoaded', () => {
                 completedTasks = data.completedTasks ?? [];
                 isMusicEnabled = data.settings?.isMusicEnabled ?? true;
                 areEffectsEnabled = data.settings?.areEffectsEnabled ?? true;
-                
-                completedTasks.forEach(taskId => updateTaskView(taskId, false));
-                
             } else {
-                console.log("Створення нового гравця...");
-                const initialData = {
+                await setDoc(playerDocRef, {
                     score: 0, score2: 10, lives: 3, completedTasks: [],
-                    firstName: user.first_name || "Guest",
-                    username: user.username || "unknown",
+                    firstName: user.first_name || "Guest", username: user.username || "unknown",
                     createdAt: serverTimestamp(),
                     settings: { isMusicEnabled: true, areEffectsEnabled: true }
-                };
-                await setDoc(playerDocRef, initialData);
+                });
             }
         } catch (error) {
             console.error("Помилка роботи з Firestore:", error);
-            tg.showAlert("Не вдалося завантажити профіль. Перевірте з'єднання з інтернетом.");
+            tg.showAlert("Не вдалося завантажити профіль. Перевірте з'єднання.");
             return;
         }
 
+        completedTasks.forEach(taskId => updateTaskView(taskId, false));
         populateProfileData(user);
         updateAllStatsUI();
         updateSettingsUI();
         setupEventListeners();
-        showPage('home-page'); 
-        startLoadingSimulation();
-    }
-
-    async function saveProgress(dataToSave) {
-        if (!playerDocRef) return;
-        try {
-            await updateDoc(playerDocRef, dataToSave);
-            console.log("Прогрес збережено:", dataToSave);
-        } catch (error) {
-            console.error("Помилка збереження прогресу:", error);
-        }
+        showPage('home-page');
+        finishLoading();
     }
     
-    function startLoadingSimulation() {
-        if (isMusicEnabled) {
-            backgroundMusic.muted = true;
-            backgroundMusic.play().catch(e => console.error("Autoplay muted failed:", e));
-        }
-        
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += 1;
-            if (progressBar) progressBar.style.width = progress + '%';
-            if (progress >= 100) {
-                clearInterval(interval);
-                if (loaderScreen) loaderScreen.style.opacity = '0';
-                if (mainApp) {
-                    mainApp.classList.remove('hidden');
-                    mainApp.classList.add('flex');
-                }
-                setTimeout(() => {
-                    if (loaderScreen) loaderScreen.style.display = 'none';
-                }, 500);
-            }
-        }, 25);
+    // Функція для плавного збереження даних (Debounce)
+    function debounce(func, delay) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), delay);
+        };
+    }
+
+    const debouncedSave = debounce(() => {
+        if (!playerDocRef) return;
+        updateDoc(playerDocRef, { score, score2, lives })
+            .catch(e => console.error("Помилка збереження прогресу:", e));
+    }, 2000);
+
+    function finishLoading() {
+        // Симулюємо мінімальний час завантаження для показу анімації
+        setTimeout(() => {
+            loaderScreen.style.opacity = '0';
+            mainApp.classList.remove('hidden');
+            mainApp.classList.add('flex');
+            setTimeout(() => loaderScreen.style.display = 'none', 500);
+        }, 1500); 
     }
     
     function populateProfileData(user) {
@@ -162,24 +137,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setupEventListeners() {
         clickerButton.addEventListener('click', (event) => {
-            if (isMusicEnabled && !isMusicUnmuted) {
-                backgroundMusic.muted = false;
-                isMusicUnmuted = true;
-            }
             score++;
             updateAllStatsUI();
             animateClick(event);
-            
-            if (score % 20 === 0) {
-                saveProgress({ score: score });
-            }
+            debouncedSave();
         });
         
         allTaskCards.forEach(card => {
-            const button = card.querySelector('.task-button, .bg-\\[\\#0094FE\\]');
-            if (button) {
-                button.addEventListener('click', () => handleTaskCompletion(card));
-            }
+            const button = card.querySelector('.task-button');
+            if (button) button.addEventListener('click', () => handleTaskCompletion(card));
         });
         
         toggleMusicBtn.addEventListener('click', toggleMusic);
@@ -187,7 +153,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'hidden') {
-                saveProgress({ score, score2, lives });
+                if (!playerDocRef) return;
+                updateDoc(playerDocRef, { score, score2, lives });
             }
         });
 
@@ -202,161 +169,158 @@ document.addEventListener('DOMContentLoaded', () => {
         closeProfileBtn.addEventListener('click', hideProfileModal);
         profileModalBackdrop.addEventListener('click', hideProfileModal);
         
-        tonConnectUI.onStatusChange(updateWalletUI);
+        tonConnectUI.onStatusChange(wallet => updateWalletUI(wallet));
     }
 
-    function toggleMusic() {
-        isMusicEnabled = !isMusicEnabled;
-        updateSettingsUI();
-        saveProgress({ 'settings.isMusicEnabled': isMusicEnabled });
-        
-        if (isMusicEnabled) {
-            backgroundMusic.play().catch(e => console.error("Could not play music:", e));
-        } else {
-            backgroundMusic.pause();
-        }
-    }
-
-    function toggleEffects() {
-        areEffectsEnabled = !areEffectsEnabled;
-        updateSettingsUI();
-        saveProgress({ 'settings.areEffectsEnabled': areEffectsEnabled });
-    }
-
-    function updateSettingsUI() {
-        if(!toggleMusicBtn || !toggleEffectsBtn) return;
-
-        const musicIcon = toggleMusicBtn.querySelector('i');
-        if (isMusicEnabled) {
-            toggleMusicBtn.classList.add('active');
-            musicIcon.className = 'fas fa-volume-up';
-        } else {
-            toggleMusicBtn.classList.remove('active');
-            musicIcon.className = 'fas fa-volume-mute';
-        }
-        
-        const effectsIcon = toggleEffectsBtn.querySelector('i');
-        if (areEffectsEnabled) {
-            toggleEffectsBtn.classList.add('active');
-            effectsIcon.className = 'fas fa-star';
-        } else {
-            toggleEffectsBtn.classList.remove('active');
-            effectsIcon.className = 'fas fa-star-half-alt';
-        }
-    }
-
-    function updateAllStatsUI() {
-        const formattedScore = score.toLocaleString('uk-UA');
-        const formattedScore2 = score2.toLocaleString('uk-UA');
-
-        scoreDisplay.textContent = formattedScore;
-        score2Display.textContent = formattedScore2;
-        livesDisplay.textContent = lives;
-        
-        if (profileScoreDisplay) profileScoreDisplay.textContent = formattedScore;
-        if (profileScore2Display) profileScore2Display.textContent = formattedScore2;
-    }
-
-    function animateClick(e) {
-        if (areEffectsEnabled) {
-            clickSound.currentTime = 0;
-            clickSound.play().catch(e => console.error("Не вдалося відтворити звук кліку:", e));
-        }
-        
-        const animation = document.createElement('span');
-        animation.className = 'click-animation';
-        animation.textContent = '+1';
-        const rect = clickerContainer.getBoundingClientRect();
-        const x = e.clientX - rect.left - 15;
-        const y = e.clientY - rect.top - 30;
-        animation.style.left = `${x}px`;
-        animation.style.top = `${y}px`;
-        clickerContainer.appendChild(animation);
-        setTimeout(() => animation.remove(), 1000);
-    }
-
-    function updateTaskView(taskId, shouldMove = true) {
-        const taskCard = document.getElementById(taskId);
-        if (taskCard) {
-            taskCard.classList.add('completed');
-            const button = taskCard.querySelector('.task-button, .bg-\\[\\#0094FE\\]');
-            if(button) {
-                button.disabled = true;
-                button.textContent = 'Виконано';
-            }
-            const joinButton = taskCard.querySelector('.task-button-secondary');
-            if (joinButton) {
-                joinButton.style.pointerEvents = 'none';
-            }
-            if (tasksContainer && shouldMove) {
-                tasksContainer.appendChild(taskCard);
-            }
-        }
-    }
-
-    function handleTaskCompletion(taskCard) {
-        if (!taskCard || taskCard.classList.contains('completed')) return;
-
-        const reward = parseInt(taskCard.dataset.reward || '0');
-        score += reward;
-        completedTasks.push(taskCard.id);
-        
-        updateAllStatsUI();
-        updateTaskView(taskCard.id, true);
-        
-        tg.showAlert(`Нагороду в ${reward.toLocaleString('uk-UA')} монет зараховано!`);
-        
-        saveProgress({
-            score: score,
-            completedTasks: completedTasks
-        });
-    }
-    
-    function showPage(pageId) {
-        pages.forEach(page => {
-            if (page.id === pageId) {
-                page.classList.add('page-active');
-            } else {
-                page.classList.remove('page-active');
-            }
-        });
-    }
-
-    function updateActiveNavItem(activeItem) {
-        navItems.forEach(item => {
-            item.classList.remove('active');
-        });
-        activeItem.classList.add('active');
-    }
-
+    // ВИПРАВЛЕНА функція
     function showProfileModal() {
         updateAllStatsUI();
+        // Примусово оновлюємо UI гаманця щоразу при відкритті профілю
+        updateWalletUI(tonConnectUI.wallet); 
+    
         profileModal.classList.remove('hidden');
         setTimeout(() => {
             profileModalBackdrop.classList.remove('opacity-0');
             profileModalContent.classList.remove('scale-95', 'opacity-0');
         }, 10);
     }
+    
+    // НОВА функція анімації кліку
+    function animateClick(e) {
+        if (areEffectsEnabled) {
+            clickSound.currentTime = 0;
+            clickSound.play().catch(err => console.error("Не вдалося відтворити звук кліку:", err));
+        }
+    
+        const valueText = document.createElement('div');
+        valueText.className = 'click-value-text';
+        valueText.textContent = '+1';
+        clickerContainer.appendChild(valueText);
+        setTimeout(() => valueText.remove(), 1000);
+    
+        const rect = clickerContainer.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+    
+        for (let i = 0; i < 10; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'click-particle';
+            clickerContainer.appendChild(particle);
+    
+            const size = Math.random() * 8 + 4;
+            const angle = Math.random() * 360;
+            const distance = Math.random() * 80 + 50;
+    
+            const offsetX = Math.cos(angle * (Math.PI / 180)) * distance;
+            const offsetY = Math.sin(angle * (Math.PI / 180)) * distance;
+    
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = `${x}px`;
+            particle.style.top = `${y}px`;
+    
+            particle.animate([
+                { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                { transform: `translate(${offsetX}px, ${offsetY}px) scale(0)`, opacity: 1 }
+            ], {
+                duration: 700 + Math.random() * 300,
+                easing: 'cubic-bezier(0.1, 0.9, 0.2, 1)',
+                fill: 'forwards'
+            });
+    
+            setTimeout(() => particle.remove(), 1000);
+        }
+    }
 
+    function handleTaskCompletion(taskCard) {
+        // !!! УВАГА: КРИТИЧНО ВАЖЛИВО !!!
+        // Ця функція НЕБЕЗПЕЧНА для реального використання. 
+        // Користувач може легко її викликати і нарахувати собі монети.
+        // Перевірка завдань МАЄ відбуватися на сервері (наприклад, Firebase Cloud Functions).
+        // Цей код є лише ЗАГЛУШКОЮ для тестування інтерфейсу.
+        
+        if (!taskCard || taskCard.classList.contains('completed')) return;
+
+        const reward = parseInt(taskCard.dataset.reward || '0');
+        const taskId = taskCard.id;
+
+        score += reward;
+        completedTasks.push(taskId);
+        
+        updateAllStatsUI();
+        updateTaskView(taskId, true);
+        
+        tg.showAlert(`Нагороду в ${reward.toLocaleString('uk-UA')} монет зараховано! (Демо)`);
+        
+        if(playerDocRef) {
+            updateDoc(playerDocRef, {
+                score: score,
+                completedTasks: completedTasks
+            });
+        }
+    }
+
+    // --- Інші функції (UI, навігація і т.д.) ---
+
+    function toggleMusic() {
+        isMusicEnabled = !isMusicEnabled;
+        updateSettingsUI();
+        if(playerDocRef) updateDoc(playerDocRef, { 'settings.isMusicEnabled': isMusicEnabled });
+        isMusicEnabled ? backgroundMusic.play().catch(e => {}) : backgroundMusic.pause();
+    }
+    function toggleEffects() {
+        areEffectsEnabled = !areEffectsEnabled;
+        updateSettingsUI();
+        if(playerDocRef) updateDoc(playerDocRef, { 'settings.areEffectsEnabled': areEffectsEnabled });
+    }
+    function updateSettingsUI() {
+        const musicIcon = toggleMusicBtn.querySelector('.action i');
+        isMusicEnabled ? musicIcon.className = 'fas fa-volume-up' : musicIcon.className = 'fas fa-volume-mute';
+        const effectsIcon = toggleEffectsBtn.querySelector('.action i');
+        areEffectsEnabled ? effectsIcon.className = 'fas fa-star' : effectsIcon.className = 'fas fa-star-half-alt';
+    }
+    function updateAllStatsUI() {
+        scoreDisplay.textContent = score.toLocaleString('uk-UA');
+        score2Display.textContent = score2.toLocaleString('uk-UA');
+        livesDisplay.textContent = lives;
+        if (profileScoreDisplay) profileScoreDisplay.textContent = score.toLocaleString('uk-UA');
+        if (profileScore2Display) profileScore2Display.textContent = score2.toLocaleString('uk-UA');
+    }
+    function updateTaskView(taskId, shouldMove = true) {
+        const taskCard = document.getElementById(taskId);
+        if (taskCard) {
+            taskCard.classList.add('completed');
+            const button = taskCard.querySelector('.task-button');
+            if(button) {
+                button.disabled = true;
+                button.textContent = 'Виконано';
+            }
+        }
+    }
+    function showPage(pageId) {
+        pages.forEach(page => page.classList.toggle('page-active', page.id === pageId));
+    }
+    function updateActiveNavItem(activeItem) {
+        navItems.forEach(item => item.classList.remove('active'));
+        activeItem.classList.add('active');
+    }
     function hideProfileModal() {
         profileModalBackdrop.classList.add('opacity-0');
         profileModalContent.classList.add('scale-95', 'opacity-0');
         setTimeout(() => profileModal.classList.add('hidden'), 300);
     }
-
     function updateWalletUI(wallet) {
         if (wallet) {
-            const friendlyAddress = TON_CONNECT_UI.toUserFriendlyAddress(wallet.account.address, wallet.account.chain === '-3');
-            walletAddressP.textContent = friendlyAddress;
-            walletAddressP.classList.remove('text-gray-600', 'bg-gray-100');
+            const address = TON_CONNECT_UI.toUserFriendlyAddress(wallet.account.address);
+            walletAddressP.textContent = address;
             walletAddressP.classList.add('text-blue-700', 'bg-blue-50');
         } else {
             walletAddressP.textContent = 'Гаманець не підключено';
             walletAddressP.classList.remove('text-blue-700', 'bg-blue-50');
-            walletAddressP.classList.add('text-gray-600', 'bg-gray-100');
         }
     }
     
     // Запускаємо додаток
     initializeApp();
 });
+
