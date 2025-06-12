@@ -35,3 +35,6 @@ async function loadCustomTasks(){customTasksContainer.innerHTML='';const q=query
 async function handleCustomTaskCompletion(event){const button=event.target;const taskId=button.dataset.taskId,url=button.dataset.url;button.disabled=!0;button.classList.add('disabled');try{const completeCustomTask=httpsCallable(functions,'completeCustomTask');const result=await completeCustomTask({taskId:taskId});if(result.data.success){tg.showAlert(result.data.message);score=result.data.newScore;updateAllStatsUI();window.open(url,'_blank');button.closest('.task-card').remove()}else{tg.showAlert(result.data.message||'Помилка');button.disabled=!1;button.classList.remove('disabled')}}catch(error){tg.showAlert(error.message||'Серверна помилка. Спробуйте пізніше.');button.disabled=!1;button.classList.remove('disabled')}}
 initializeApp()});
     
+
+
+initializeApp();
