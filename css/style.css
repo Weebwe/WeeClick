@@ -1,14 +1,30 @@
 :root {
     --brand-color: #0094FE;
     --brand-color-hover: #007acd;
-    --text-main: #1a202c;
-    --text-secondary: #4a5568;
-    --bg-main: #f0f2f5;
+    --text-main: #000000; /* Чистий чорний для кращого контрасту */
+    --text-secondary: #8A8A8E; /* Класичний сірий текст з iOS */
+    --bg-main: #F2F2F7; /* Стандартний фон налаштувань iOS */
     --bg-light: #ffffff;
+    --separator-color: #E5E5EA; /* Колір розділювачів iOS */
+    --blur-intensity: 15px; /* Інтенсивність розмиття */
 }
-html, body { height: 100%; overflow: hidden; }
-body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color: var(--text-main); display: flex; flex-direction: column; }
-/* --- Екран завантаження --- */
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- ЕКРАН ЗАВАНТАЖЕННЯ (без змін) --- */
 #loader-screen { background-color: var(--bg-light); transition: opacity 0.5s ease-out; }
 #logo-image-container { animation: pulse 2s infinite ease-in-out; }
 @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
@@ -18,100 +34,148 @@ body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color
 #progress-bar-container { width: 80%; max-width: 300px; height: 8px; background-color: #e0e0e0; border-radius: 4px; overflow: hidden; margin-top: 2rem; }
 #progress-bar { width: 0%; height: 100%; background-color: var(--brand-color); transition: width 0.1s linear; }
 #copyright-notice { position: absolute; bottom: 20px; width: 100%; text-align: center; font-size: 0.75rem; color: var(--text-secondary); }
-/* --- Кнопки хедера --- */
-.header-btn { background-color: var(--bg-light) !important; color: var(--brand-color) !important; font-weight: 600 !important; }
-.header-btn:hover { background-color: #eef6ff !important; }
-#ton-connect-header .tc-button { background-color: var(--bg-light) !important; color: var(--brand-color) !important; }
 
-/* Новий спосіб переключення сторінок */
-.page {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    overflow-y: auto;
-    transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
-    visibility: hidden; /* Ховаємо сторінку повністю */
-    opacity: 0;
-}
-.page.page-active {
-    visibility: visible; /* Робимо активну сторінку видимою */
-    opacity: 1;
-    z-index: 1; /* Активна сторінка завжди зверху */
-}
-
-/* Стилі для нижньої панелі */
-.bottom-nav { 
-    background-color: var(--brand-color);
-    box-shadow: 0 -4px 12px rgba(0,0,0,0.08); 
+/* --- ГОЛОВНИЙ ІНТЕРФЕЙС --- */
+header, .bottom-nav {
+    background-color: rgba(248, 248, 248, 0.85); /* Напівпрозорий фон */
+    -webkit-backdrop-filter: blur(var(--blur-intensity));
+    backdrop-filter: blur(var(--blur-intensity));
     flex-shrink: 0;
+    width: 100%;
+    z-index: 10;
 }
+header { border-bottom: 1px solid rgba(0,0,0,0.1); }
+.bottom-nav { border-top: 1px solid rgba(0,0,0,0.1); }
+
+/* Кнопки хедера */
+.header-btn, #ton-connect-header .tc-button {
+    background-color: transparent !important;
+    color: var(--brand-color) !important;
+    font-weight: 600 !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Навігація */
 .nav-item {
-    color: white;
-    opacity: 0.75;
-    transition: transform 0.2s ease-in-out, color 0.2s ease-in-out, opacity 0.2s ease-in-out;
-    transform-origin: center bottom;
+    color: var(--text-secondary);
+    transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
 }
 .nav-item.active {
-    opacity: 1;
-    color: #22c55e;
-    transform: scale(1.1);
-    font-weight: bold;
+    color: var(--brand-color);
+}
+.nav-item .fas { font-size: 1.4rem; }
+.nav-item span { font-size: 0.65rem; font-weight: 500; margin-top: 2px; }
+
+/* Перемикання сторінок */
+.page {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%; overflow-y: auto;
+    transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+    visibility: hidden; opacity: 0;
+    padding: 1rem; /* Додаємо загальний відступ */
+}
+.page.page-active {
+    visibility: visible; opacity: 1; z-index: 1;
 }
 
-/* --- Загальні стилі --- */
-#clicker-button { transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 0 10px 20px -5px rgba(0, 148, 254, 0.4); }
+/* --- СТОРІНКА HOME --- */
+#home-page .flex-col {
+    padding-bottom: 80px; /* Компенсація висоти нижньої панелі */
+}
+#clicker-button {
+    width: 200px; height: 200px;
+    border-radius: 9999px;
+    transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 0 10px 30px -10px rgba(0, 148, 254, 0.6);
+}
 #clicker-button:active { transform: scale(0.93); }
-.click-animation { position: absolute; font-size: 2rem; font-weight: bold; color: var(--brand-color); opacity: 1; animation: floatUp 1s ease-out forwards; pointer-events: none; }
-@keyframes floatUp { from { transform: translateY(0) scale(1); opacity: 1; } to { transform: translateY(-100px) scale(1.5); opacity: 0; } }
-#profile-modal-backdrop { background-color: rgba(0,0,0,0.5); transition: opacity 0.3s ease; }
-#profile-modal-content { transition: transform 0.3s ease, opacity 0.3s ease; }
-.premium-badge { background: linear-gradient(135deg, #6B49F7 0%, #D856F2 100%); }
 
-/* Стилі для кнопок завдань */
-.task-button {
-    background-color: #0094FE;
-    color: white;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-weight: 600;
+.click-animation {
+    position: absolute; font-size: 2.5rem; font-weight: 700;
+    color: var(--brand-color); opacity: 1;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    animation: floatUp 1s ease-out forwards;
+    pointer-events: none;
+}
+@keyframes floatUp {
+    from { transform: translateY(0) scale(1); opacity: 1; }
+    to { transform: translateY(-120px) scale(1.5); opacity: 0; }
+}
+
+/* --- СТОРІНКИ ЗАВДАНЬ, МАГАЗИНУ, ЛІДЕРІВ --- */
+.section-title { font-size: 2rem; font-weight: 700; margin-bottom: 1rem; }
+.section-card {
+    background-color: var(--bg-light);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+.section-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--separator-color);
     transition: background-color 0.2s;
-    text-align: center;
 }
-.task-button:hover {
-    background-color: #007acd;
+.section-item:last-child { border-bottom: none; }
+.section-item:hover { background-color: #f5f5f5; }
+
+.section-item .icon {
+    width: 30px; height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    margin-right: 12px;
+    color: white;
 }
-.task-button:disabled {
-    background-color: #a0aec0;
+.section-item .content { flex-grow: 1; }
+.section-item .content h3 { font-weight: 600; }
+.section-item .content p { font-size: 0.9rem; color: var(--text-secondary); }
+.section-item .action button, .section-item .action a {
+    background-color: var(--brand-color);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+.section-item .action button:hover { background-color: var(--brand-color-hover); }
+.section-item .action a.task-button-secondary {
+    background-color: #EFEFF4;
+    color: var(--brand-color);
+}
+.section-item.completed { opacity: 0.7; }
+.section-item.completed .action button {
+    background-color: #4CAF50; /* Зелений для виконаних */
     cursor: not-allowed;
 }
-.task-button-secondary {
-    background-color: #e2e8f0;
-    color: #4a5568;
-    text-decoration: none;
-}
-.task-button-secondary:hover {
-    background-color: #cbd5e0;
-}
 
-/* Стиль для виконаних завдань */
-#tasks-page .p-4 { /* Target the inner container to apply flex */
-    display: flex;
-    flex-direction: column;
+/* --- МОДАЛЬНЕ ВІКНО ПРОФІЛЮ --- */
+#profile-modal-backdrop {
+    background-color: rgba(0,0,0,0.3);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    transition: opacity 0.3s ease;
 }
-.task-card.completed {
-    opacity: 0.6;
-    order: 1; /* Поміщає виконані завдання в кінець списку */
+#profile-modal-content {
+    background-color: var(--bg-main);
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
 }
+#close-profile-btn { font-size: 1.2rem; color: var(--text-secondary); background-color: #E5E5EA; width: 28px; height: 28px; border-radius: 9999px; }
 
-/* Стилі для кнопок налаштувань в профілі */
+/* Налаштування в профілі - теж у вигляді секцій */
 .settings-toggle {
-    background-color: #f3f4f6;
-    transition: background-color 0.2s;
-    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0; /* Внутрішні відступи секції тепер керують цим */
 }
-.settings-toggle.active {
-    background-color: #dcfce7;
-    color: #166534;
-}
+.settings-toggle.active .fas { color: var(--brand-color); }
