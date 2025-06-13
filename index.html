@@ -1,168 +1,117 @@
 <!DOCTYPE html>
-<html lang="uk" class="dark"> <head>
+<html lang="uk" class="dark">
+<head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WeePlayer Dynamic Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>WeePlayer Final Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Стилі для анімацій та захисту контенту */
         body {
-            -webkit-touch-callout: none; /* iOS Safari */
-            -webkit-user-select: none;   /* Safari */
-            -khtml-user-select: none;    /* Konqueror HTML */
-            -moz-user-select: none;      /* Old Firefox */
-            -ms-user-select: none;       /* Internet Explorer/Edge */
-            user-select: none;           /* Non-prefixed version */
+            -webkit-touch-callout: none; -webkit-user-select: none;
+            -khtml-user-select: none; -moz-user-select: none;
+            -ms-user-select: none; user-select: none;
         }
+        /* Анімації */
         @keyframes slideInFromLeft { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes slideInFromRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes text-glow {
-            0%, 100% { text-shadow: 0 0 5px #0094FE, 0 0 10px #0094FE; }
-            50% { text-shadow: 0 0 10px #0094FE, 0 0 20px #0094FE; }
+            0%, 100% { text-shadow: 0 0 4px #0094FE, 0 0 8px #0094FE; }
+            50% { text-shadow: 0 0 8px #0094FE, 0 0 16px #0094FE; }
         }
         @keyframes pulse-shadow-blue {
-            0%, 100% { box-shadow: 0 0 12px 0px rgba(0, 148, 254, 0.4); }
-            50% { box-shadow: 0 0 18px 3px rgba(0, 148, 254, 0.7); }
+            0%, 100% { box-shadow: 0 0 10px 0px rgba(0, 148, 254, 0.4); }
+            50% { box-shadow: 0 0 15px 2px rgba(0, 148, 254, 0.7); }
         }
-
+        @keyframes click-burst-anim {
+            0% { transform: scale(0); opacity: 0.8; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+        /* Класи для анімацій */
         .animate-on-load-left { animation: slideInFromLeft 0.7s ease-out forwards; }
         .animate-on-load-right { animation: slideInFromRight 0.7s ease-out forwards; }
         .animate-on-load-fade { opacity: 0; animation: fadeIn 0.5s ease-out forwards; }
         .animate-text-glow { animation: text-glow 2.5s ease-in-out infinite; }
         .animate-pulse-glow { animation: pulse-shadow-blue 2.5s ease-in-out infinite; }
+        /* Стиль для ефекту сплеску */
+        .click-burst {
+            position: absolute;
+            border-radius: 50%;
+            background-color: #0094FE;
+            animation: click-burst-anim 0.5s ease-out forwards;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+        }
     </style>
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: '#0094FE',
-                    }
-                }
-            }
-        }
+        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { brand: '#0094FE' } } } }
     </script>
 </head>
-<body class="bg-white dark:bg-[#101010] p-2 overflow-x-hidden transition-colors duration-300">
+<body class="bg-white dark:bg-[#101010] p-1.5 overflow-x-hidden transition-colors duration-300">
 
-  <div class="flex items-end justify-between w-full space-x-2 text-white p-2 rounded-xl" style="background: linear-gradient(145deg, #003a6a, #005a9c);">
+  <div class="flex items-center justify-between w-full space-x-1.5 text-white p-1.5 rounded-lg" style="background: linear-gradient(145deg, #003a6a, #005a9c);">
 
-    <div class="flex-shrink-0 animate-on-load-left flex flex-col items-center" onclick="openProfileModal()">
-        <div class="relative w-24 h-24 border-4 border-gray-700 hover:border-brand rounded-md cursor-pointer transition-all duration-300 animate-pulse-glow" style="animation-duration: 3s;">
+    <div class="flex-shrink-0 animate-on-load-left flex flex-col items-center relative overflow-hidden" onclick="openProfileModal(event); createClickBurst(event);">
+        <div class="relative w-20 h-20 border-2 border-gray-700 hover:border-brand rounded-md cursor-pointer transition-all duration-300 animate-pulse-glow">
             <img src="https://raw.githubusercontent.com/Weebwe/WeeClick/main/logo.png" alt="User Avatar" class="w-full h-full object-cover rounded-sm p-1">
-            <span class="absolute bottom-1 left-1 font-bold text-lg" style="text-shadow: 1px 1px 2px black;">47</span>
-        </div>
-        <div class="space-y-1 mt-1">
-            <div class="w-24 h-2 bg-gray-800 border border-black rounded-full"><div class="h-full w-3/4 bg-brand rounded-full"></div></div>
-            <div class="w-24 h-2 bg-gray-800 border border-black rounded-full"><div class="h-full w-1/2 bg-green-500 rounded-full"></div></div>
+            <span class="absolute bottom-0.5 left-0.5 text-white font-bold text-base" style="text-shadow: 1px 1px 2px black;">47</span>
         </div>
         <div class="text-gray-300 text-xs mt-1 font-sans font-bold">@WeePlayer</div>
     </div>
 
-    <div class="flex-grow flex flex-col items-center justify-center space-y-2 mx-2 pb-1">
-        <div class="flex items-center justify-center space-x-2 bg-black/30 px-4 py-1.5 rounded-md">
-            <div class="animate-on-load-fade" style="animation-delay: 200ms;"><div class="flex items-center cursor-pointer group p-1 rounded-md transition-all hover:bg-brand/20" onclick="openModal('Дерево 🪵', 'Ваш запас дерева.')"><span class="text-xl mr-2">🪵</span><span class="text-gray-300 group-hover:text-white font-semibold text-sm">811.4M</span></div></div>
-            <div class="animate-on-load-fade" style="animation-delay: 300ms;"><div class="flex items-center cursor-pointer group p-1 rounded-md transition-all hover:bg-brand/20" onclick="openModal('Пшениця 🌾', 'Ваш запас пшениці.')"><span class="text-xl mr-2">🌾</span><span class="text-gray-300 group-hover:text-white font-semibold text-sm">937.5M</span></div></div>
-            <div class="animate-on-load-fade" style="animation-delay: 400ms;"><div class="flex items-center cursor-pointer group p-1 rounded-md transition-all hover:bg-brand/20" onclick="openModal('Камінь 🪨', 'Ваш запас каменю.')"><span class="text-xl mr-2">🪨</span><span class="text-gray-300 group-hover:text-white font-semibold text-sm">291.9M</span></div></div>
-            <div class="animate-on-load-fade" style="animation-delay: 500ms;"><div class="flex items-center cursor-pointer group p-1 rounded-md transition-all hover:bg-brand/20" onclick="openModal('Залізо ⛓️', 'Ваш запас заліза.')"><span class="text-xl mr-2">⛓️</span><span class="text-gray-300 group-hover:text-white font-semibold text-sm">167.5M</span></div></div>
+    <div class="flex-grow flex flex-col items-center justify-center space-y-1.5 mx-1">
+        <div class="flex items-center justify-center flex-wrap gap-x-1.5 gap-y-1 bg-black/30 px-2 py-1 rounded-md">
+            <div class="animate-on-load-fade relative overflow-hidden" style="animation-delay: 200ms;"><div class="flex items-center cursor-pointer group p-1 rounded-md transition-all hover:bg-brand/20" onclick="openModal('Дерево 🪵', 'Ваш запас дерева.'); createClickBurst(event);"><span class="text-lg mr-1">🪵</span><span class="text-gray-300 group-hover:text-white font-semibold text-xs">811.4M</span></div></div>
+            <div class="animate-on-load-fade relative overflow-hidden" style="animation-delay: 300ms;"><div class="flex items-center cursor-pointer group p-1 rounded-md transition-all hover:bg-brand/20" onclick="openModal('Пшениця 🌾', 'Ваш запас пшениці.'); createClickBurst(event);"><span class="text-lg mr-1">🌾</span><span class="text-gray-300 group-hover:text-white font-semibold text-xs">937.5M</span></div></div>
+            <div class="animate-on-load-fade relative overflow-hidden" style="animation-delay: 400ms;"><div class="flex items-center cursor-pointer group p-1 rounded-md transition-all hover:bg-brand/20" onclick="openModal('Камінь 🪨', 'Ваш запас каменю.'); createClickBurst(event);"><span class="text-lg mr-1">🪨</span><span class="text-gray-300 group-hover:text-white font-semibold text-xs">291.9M</span></div></div>
+            <div class="animate-on-load-fade relative overflow-hidden" style="animation-delay: 500ms;"><div class="flex items-center cursor-pointer group p-1 rounded-md transition-all hover:bg-brand/20" onclick="openModal('Залізо ⛓️', 'Ваш запас заліза.'); createClickBurst(event);"><span class="text-lg mr-1">⛓️</span><span class="text-gray-300 group-hover:text-white font-semibold text-xs">167.5M</span></div></div>
         </div>
-        <div class="animate-on-load-fade" style="animation-delay: 600ms;">
-            <div class="bg-brand/10 border-2 border-brand/50 text-brand font-bold px-5 py-0.5 rounded-full shadow-lg cursor-pointer hover:bg-brand hover:text-white transition-all duration-300 animate-pulse-glow" style="animation-delay: 1s;" onclick="openModal('VIP Статус', 'Ваш поточний VIP рівень: 10.')">
+        <div class="animate-on-load-fade relative overflow-hidden" style="animation-delay: 600ms;">
+            <div class="bg-brand/10 border-2 border-brand/50 text-brand font-bold px-4 py-0.5 rounded-full shadow-lg cursor-pointer hover:bg-brand hover:text-white transition-all duration-300 animate-pulse-glow" style="animation-delay: 1s;" onclick="openModal('VIP Статус', 'Ваш поточний VIP рівень: 10.'); createClickBurst(event);">
                 SVIP 10
             </div>
         </div>
-        <div class="animate-on-load-fade w-full max-w-xs h-12 flex items-center justify-center transition-all" style="animation-delay: 700ms; background: linear-gradient(to bottom, #00508E, #00345C); clip-path: polygon(0% 0%, 100% 0%, 95% 50%, 100% 100%, 0% 100%, 5% 50%); border-top: 2px solid #0094FE; border-bottom: 2px solid #0094FE;">
-            <span class="text-white font-black text-3xl animate-text-glow">22,996,031</span>
+        <div class="animate-on-load-fade w-full max-w-xs h-10 flex items-center justify-center transition-all" style="animation-delay: 700ms; background: linear-gradient(to bottom, #00508E, #00345C); clip-path: polygon(0% 0%, 100% 0%, 95% 50%, 100% 100%, 0% 100%, 5% 50%); border-top: 2px solid #0094FE; border-bottom: 2px solid #0094FE;">
+            <span class="text-white font-black text-2xl animate-text-glow">22,996,031</span>
         </div>
     </div>
 
-    <div class="flex-shrink-0 animate-on-load-right flex flex-col justify-between" onclick="openModal('WEE Coin', 'Ваша преміум валюта.')">
-        <div class="w-24 h-24 flex flex-col items-center justify-center p-1 rounded-md cursor-pointer border-4 border-gray-700 hover:border-brand transition-all duration-300 animate-pulse-glow">
-            <img src="https://raw.githubusercontent.com/Weebwe/WeeClick/main/logo.png" alt="WEE Coin" class="w-14 h-14 p-1">
-            <span class="text-brand font-bold text-lg mt-1">30.6K</span>
+    <div class="flex-shrink-0 animate-on-load-right flex flex-col items-center relative overflow-hidden" onclick="openModal('WEE Coin', 'Ваша преміум валюта.'); createClickBurst(event);">
+        <div class="w-20 h-20 flex flex-col items-center justify-center p-1 rounded-md cursor-pointer border-2 border-gray-700 hover:border-brand transition-all duration-300 animate-pulse-glow">
+            <img src="https://raw.githubusercontent.com/Weebwe/WeeClick/main/logo.png" alt="WEE Coin" class="w-12 h-12 p-1">
+            <span class="text-brand font-bold text-base mt-0.5">30.6K</span>
         </div>
-        <div class="h-[26px]"></div>
-    </div>
+        <div class="text-transparent text-xs mt-1 font-sans font-bold">.</div> </div>
   </div>
   
-  <div id="genericModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all duration-300 opacity-0 scale-95 hidden" onclick="closeModal('genericModal')">
-    <div class="bg-[#1c1c1c]/90 border border-brand/50 rounded-2xl shadow-2xl p-6 w-full max-w-sm text-white text-center transform" onclick="event.stopPropagation()">
-      <h3 id="modalTitle" class="text-2xl font-bold text-brand mb-4"></h3>
-      <p id="modalContent" class="text-base mb-6"></p>
-      <button onclick="closeModal('genericModal')" class="bg-brand text-white font-bold py-2 px-6 rounded-lg transition-all duration-300 hover:bg-white hover:text-brand hover:shadow-[0_0_15px_#0094FE]">Закрити</button>
-    </div>
-  </div>
-
-  <div id="profileModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all duration-300 opacity-0 scale-95 hidden" onclick="closeModal('profileModal')">
-     <div class="bg-[#1c1c1c]/90 border border-brand/50 rounded-2xl shadow-2xl p-6 w-full max-w-sm text-white transform" onclick="event.stopPropagation()">
-        <div class="text-center mb-6">
-            <img src="https://raw.githubusercontent.com/Weebwe/WeeClick/main/logo.png" class="w-24 h-24 rounded-full border-4 border-brand mx-auto mb-4 animate-pulse-glow" style="animation-duration: 4s;"/>
-            <h3 class="text-2xl font-bold">@WeePlayer</h3>
-        </div>
-        <div class="flex items-center justify-between bg-black/20 p-4 rounded-lg">
-            <span class="font-semibold">Тема День/Ніч</span>
-            <button onclick="toggleTheme()" class="relative w-14 h-8 rounded-full bg-gray-600 p-1 transition-colors duration-300">
-                <div id="theme-toggle-indicator" class="absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-md transform transition-transform duration-300">
-                    <span id="theme-icon" class="absolute inset-0 flex items-center justify-center text-gray-800"></span>
-                </div>
-            </button>
-        </div>
-        <button onclick="closeModal('profileModal')" class="w-full mt-6 bg-brand text-white font-bold py-2 px-6 rounded-lg transition-all duration-300 hover:bg-white hover:text-brand hover:shadow-[0_0_15px_#0094FE]">Закрити</button>
-     </div>
-  </div>
+  <div id="genericModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all duration-300 opacity-0 scale-95 hidden" onclick="closeModal('genericModal')"><div class="bg-[#1c1c1c]/90 border border-brand/50 rounded-2xl shadow-2xl p-6 w-full max-w-sm text-white text-center transform" onclick="event.stopPropagation();"><h3 id="modalTitle" class="text-2xl font-bold text-brand mb-4"></h3><p id="modalContent" class="text-base mb-6"></p><button onclick="closeModal('genericModal')" class="bg-brand text-white font-bold py-2 px-6 rounded-lg transition-all duration-300 hover:bg-white hover:text-brand hover:shadow-[0_0_15px_#0094FE]">Закрити</button></div></div>
+  <div id="profileModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all duration-300 opacity-0 scale-95 hidden" onclick="closeModal('profileModal')"><div class="bg-[#1c1c1c]/90 border border-brand/50 rounded-2xl shadow-2xl p-6 w-full max-w-sm text-white transform" onclick="event.stopPropagation();"><div class="text-center mb-6"><img src="https://raw.githubusercontent.com/Weebwe/WeeClick/main/logo.png" class="w-24 h-24 rounded-full border-4 border-brand mx-auto mb-4 animate-pulse-glow"/><h3 class="text-2xl font-bold">@WeePlayer</h3></div><div class="flex items-center justify-between bg-black/20 p-4 rounded-lg"><span class="font-semibold">Тема День/Ніч</span><button onclick="toggleTheme()" class="relative w-14 h-8 rounded-full bg-gray-600 p-1 transition-colors duration-300"><div id="theme-toggle-indicator" class="absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-md transform transition-transform duration-300"><span id="theme-icon" class="absolute inset-0 flex items-center justify-center text-gray-800"></span></div></button></div><button onclick="closeModal('profileModal')" class="w-full mt-6 bg-brand text-white font-bold py-2 px-6 rounded-lg transition-all duration-300 hover:bg-white hover:text-brand hover:shadow-[0_0_15px_#0094FE]">Закрити</button></div></div>
 
   <script>
-    // --- Захист контенту ---
     document.addEventListener('contextmenu', event => event.preventDefault());
-    document.querySelectorAll('img').forEach(img => {
-        img.setAttribute('draggable', false);
-    });
+    document.querySelectorAll('img').forEach(img => img.setAttribute('draggable', false));
 
-    // --- Керування темою ---
-    function updateThemeUI(isDark) {
-        const indicator = document.getElementById('theme-toggle-indicator');
-        const icon = document.getElementById('theme-icon');
-        if (isDark) {
-            document.documentElement.classList.add('dark');
-            indicator.style.transform = 'translateX(24px)';
-            icon.innerText = '☀️';
-        } else {
-            document.documentElement.classList.remove('dark');
-            indicator.style.transform = 'translateX(0)';
-            icon.innerText = '🌙';
-        }
+    function createClickBurst(event) {
+        const target = event.currentTarget;
+        const burst = document.createElement('span');
+        const rect = target.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        burst.className = 'click-burst';
+        burst.style.left = `${x}px`;
+        burst.style.top = `${y}px`;
+        burst.style.width = burst.style.height = `${Math.max(target.clientWidth, target.clientHeight) * 2}px`;
+        target.appendChild(burst);
+        setTimeout(() => burst.remove(), 500);
     }
-    function toggleTheme() {
-        const isDark = !document.documentElement.classList.contains('dark');
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        updateThemeUI(isDark);
-    }
-    (function initTheme() {
-        const savedTheme = localStorage.getItem('theme');
-        updateThemeUI(savedTheme !== 'light');
-    })();
-
-    // --- Керування модальними вікнами ---
-    function openModal(title, content) {
-        const modal = document.getElementById('genericModal');
-        document.getElementById('modalTitle').innerText = title;
-        document.getElementById('modalContent').innerText = content;
-        modal.classList.remove('hidden');
-        setTimeout(() => modal.classList.remove('opacity-0', 'scale-95'), 10);
-    }
-    function openProfileModal() {
-        const modal = document.getElementById('profileModal');
-        modal.classList.remove('hidden');
-        setTimeout(() => modal.classList.remove('opacity-0', 'scale-95'), 10);
-    }
-    function closeModal(modalId) {
-        const modal = document.getElementById(modalId);
-        modal.classList.add('opacity-0', 'scale-95');
-        setTimeout(() => modal.classList.add('hidden'), 300);
-    }
+    
+    function updateThemeUI(isDark) {const indicator = document.getElementById('theme-toggle-indicator'), icon = document.getElementById('theme-icon'); if (isDark) {document.documentElement.classList.add('dark'); indicator.style.transform = 'translateX(24px)'; icon.innerText = '☀️';} else {document.documentElement.classList.remove('dark'); indicator.style.transform = 'translateX(0)'; icon.innerText = '🌙';}}
+    function toggleTheme() {const isDark = !document.documentElement.classList.contains('dark'); localStorage.setItem('theme', isDark ? 'dark' : 'light'); updateThemeUI(isDark);}
+    (function initTheme() {updateThemeUI(localStorage.getItem('theme') !== 'light');})();
+    
+    function openModal(title, content) {const modal = document.getElementById('genericModal'); document.getElementById('modalTitle').innerText = title; document.getElementById('modalContent').innerText = content; modal.classList.remove('hidden'); setTimeout(() => modal.classList.remove('opacity-0', 'scale-95'), 10);}
+    function openProfileModal(event) {createClickBurst(event); const modal = document.getElementById('profileModal'); modal.classList.remove('hidden'); setTimeout(() => modal.classList.remove('opacity-0', 'scale-95'), 10);}
+    function closeModal(modalId) {const modal = document.getElementById(modalId); modal.classList.add('opacity-0', 'scale-95'); setTimeout(() => modal.classList.add('hidden'), 300);}
   </script>
-
 </body>
 </html>
